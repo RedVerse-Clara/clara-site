@@ -102,14 +102,11 @@
         };
 
         const ArticleLayout = ({ article, onBack }) => {
-            // SEO Dynamique : Mise à jour du Head quand l'article est monté
             useEffect(() => {
                 const oldTitle = document.title;
                 const oldDesc = document.querySelector('meta[name="description"]').content;
-                
                 document.title = `${article.title} | Avis & Test de Clara`;
                 document.querySelector('meta[name="description"]').content = article.excerpt;
-
                 return () => {
                     document.title = oldTitle;
                     document.querySelector('meta[name="description"]').content = oldDesc;
@@ -126,11 +123,8 @@
                         <h1 className="text-4xl md:text-6xl font-serif mb-8 text-[#004D40] leading-tight text-left">{article.title}</h1>
                         <p className="text-xl italic border-l-4 border-[#6B0D0D] pl-6 mb-12 bg-white py-8 rounded-r-2xl shadow-sm text-left text-gray-700">"{article.excerpt}"</p>
                     </header>
-                    
                     {article.imageUrl && <img src={article.imageUrl} alt={article.imageAlt || article.title} className="w-full rounded-3xl mb-12 shadow-2xl border-8 border-white" />}
-                    
                     <div className="html-content text-lg text-left" dangerouslySetInnerHTML={{ __html: article.content || "" }} />
-                    
                     <footer className="bg-white p-12 rounded-3xl shadow-xl text-center border border-gray-50 my-20">
                         <p className="mb-6 font-bold text-gray-400 uppercase tracking-widest text-[10px] tracking-tighter">Sélection officielle Clara • Partenaire Amazon</p>
                         <a href={article.affiliateLink} target="_blank" className="bg-[#6B0D0D] text-white px-12 py-6 rounded-2xl font-bold inline-block shadow-2xl btn-hover hover:scale-105 transition text-lg tracking-wide">Vérifier le prix sur Amazon</a>
@@ -142,6 +136,7 @@
         function App() {
             const [view, setView] = useState('home'); 
             const [articles, setArticles] = useState([]);
+            const [heroSettings, setHeroSettings] = useState({ imageUrl: 'clara-hero.jpg', imageAlt: 'Visage de Clara, influenceuse IA experte en cadeaux' });
             const [selectedArticle, setSelectedArticle] = useState(null);
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
@@ -168,6 +163,17 @@
                     .onSnapshot((snapshot) => {
                         const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         setArticles(docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+                    });
+                return () => unsubscribe();
+            }, []);
+
+            // Charger les réglages de la page d'accueil
+            useEffect(() => {
+                const unsubscribe = db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('settings').doc('hero')
+                    .onSnapshot((doc) => {
+                        if (doc.exists) {
+                            setHeroSettings(doc.data());
+                        }
                     });
                 return () => unsubscribe();
             }, []);
@@ -203,7 +209,23 @@
             const handleAdminTrigger = (e) => { e.stopPropagation(); window.scrollTo(0, 0); if (user && user.uid === ADMIN_UID) setView('admin'); else setShowLoginModal(true); };
             const handleLogin = (e) => { e.preventDefault(); auth.signInWithEmailAndPassword(e.target.email.value, e.target.password.value).then(() => { setShowLoginModal(false); setView('admin'); }).catch(() => alert("Accès refusé.")); };
             const handleTogglePreview = () => { if (!isPreview) { const fd = new FormData(formRef.current); setPreviewData({ title: fd.get('title'), category: fd.get('category'), excerpt: fd.get('excerpt'), content: quillInstance.current.root.innerHTML, imageUrl: fd.get('imageUrl'), imageAlt: fd.get('imageAlt'), affiliateLink: fd.get('affiliateLink') }); setIsPreview(true); window.scrollTo(0, 0); } else { setIsPreview(false); } };
-            const handleAddArticle = (e) => { e.preventDefault(); if (!user || user.uid !== ADMIN_UID) return; const finalData = isPreview ? { ...previewData, createdAt: Date.now() } : { title: e.target.title.value, category: e.target.category.value, excerpt: e.target.excerpt.value, content: quillInstance.current.root.innerHTML, imageUrl: e.target.imageUrl.value, imageAlt: e.target.imageAlt.value, affiliateLink: e.target.affiliateLink.value, createdAt: Date.now() }; db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').add(finalData).then(() => { setPreviewData({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" }); setIsPreview(false); setView('home'); window.scrollTo(0,0); }); };
+            
+            const handleUpdateHero = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('settings').doc('hero').set({
+                    imageUrl: fd.get('heroImageUrl'),
+                    imageAlt: fd.get('heroImageAlt')
+                }).then(() => alert("Configuration de l'accueil mise à jour !"));
+            };
+
+            const handleAddArticle = (e) => {
+                e.preventDefault();
+                if (!user || user.uid !== ADMIN_UID) return;
+                const finalData = isPreview ? { ...previewData, createdAt: Date.now() } : { title: e.target.title.value, category: e.target.category.value, excerpt: e.target.excerpt.value, content: quillInstance.current.root.innerHTML, imageUrl: e.target.imageUrl.value, imageAlt: e.target.imageAlt.value, affiliateLink: e.target.affiliateLink.value, createdAt: Date.now() };
+                db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').add(finalData).then(() => { setPreviewData({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" }); setIsPreview(false); setView('home'); window.scrollTo(0,0); });
+            };
+
             const confirmDelete = () => { db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').doc(deletingId).delete().then(() => setDeletingId(null)); };
 
             if (loading) return <div className="h-screen flex items-center justify-center bg-[#FDF5E6] font-serif italic text-[#004D40]">Mise à jour SEO...</div>;
@@ -253,7 +275,7 @@
                                             <button onClick={() => document.getElementById('latest').scrollIntoView({behavior:'smooth'})} className="bg-[#6B0D0D] text-white px-10 py-5 rounded-xl font-bold shadow-xl btn-hover transition">Découvrir mes sélections</button>
                                         </div>
                                         <div className="aspect-[4/5] bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 border-8 border-white shadow-2xl overflow-hidden relative">
-                                            <img src="clara-hero.jpg" alt="Visage de Clara, influenceuse IA experte en cadeaux pour femmes sur LeChoixDeClara.fr" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
+                                            <img src={heroSettings.imageUrl} alt={heroSettings.imageAlt} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
                                             <span className="hidden p-12 text-center text-sm italic font-light">Portrait de Clara</span>
                                         </div>
                                     </div>
@@ -285,6 +307,28 @@
                         {view === 'admin' && user && user.uid === ADMIN_UID && (
                             <div className="max-w-6xl mx-auto px-6 py-12 text-left fade-in">
                                 <div className="flex justify-between items-center mb-12 border-b pb-8"><h2 className="text-3xl font-serif text-[#004D40] font-bold">Atelier de Rédaction</h2><button onClick={() => { setIsPreview(false); auth.signOut().then(()=>setView('home')); }} className="text-gray-400 hover:text-[#6B0D0D] flex items-center gap-2 font-bold transition"><Icon name="LogOut" size={18}/> Quitter</button></div>
+                                
+                                <div className="grid lg:grid-cols-2 gap-12 items-start text-left mb-20">
+                                    <div className="bg-white p-8 rounded-3xl shadow-lg border-2 border-emerald/10">
+                                        <h3 className="font-bold mb-6 flex items-center gap-2 text-xl text-[#004D40]"><Icon name="Image" /> Configuration Accueil</h3>
+                                        <form onSubmit={handleUpdateHero} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL Photo Hero</label>
+                                                <input name="heroImageUrl" defaultValue={heroSettings.imageUrl} className="w-full p-4 border rounded-xl outline-none bg-gray-50" required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Tag ALT SEO Hero</label>
+                                                <input name="heroImageAlt" defaultValue={heroSettings.imageAlt} className="w-full p-4 border rounded-xl outline-none bg-gray-50" required />
+                                            </div>
+                                            <button className="bg-[#004D40] text-white px-8 py-4 rounded-xl font-bold w-full btn-hover shadow-lg">Mettre à jour l'accueil</button>
+                                        </form>
+                                    </div>
+                                    <div className="p-8 bg-emerald/5 rounded-3xl border border-emerald/10">
+                                        <h4 className="font-serif text-[#004D40] mb-4">Conseil Photo Accueil</h4>
+                                        <p className="text-sm text-gray-600 leading-relaxed italic">"Utilise une photo au ratio 4:5 (Portrait) pour mettre en valeur ta silhouette de 1m78. N'oublie pas le tag ALT pour Google !"</p>
+                                    </div>
+                                </div>
+
                                 {isPreview ? (
                                     <div className="space-y-8"><div className="flex justify-between items-center bg-emerald text-white p-6 rounded-2xl shadow-lg sticky top-24 z-[60]"><div className="flex items-center gap-4"><div className="bg-white/20 p-2 rounded-lg"><Icon name="Eye" size={24} /></div><div className="text-left"><p className="font-bold">Mode Prévisualisation</p><p className="text-xs opacity-75">Optimisation SEO en cours.</p></div></div><div className="flex gap-4"><button onClick={handleTogglePreview} className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-xl font-bold transition flex items-center gap-2"><Icon name="Edit3" size={18} /> Modifier</button><button onClick={handleAddArticle} className="bg-white text-emerald px-8 py-3 rounded-xl font-bold transition shadow-xl hover:scale-105 active:scale-95">Publier maintenant</button></div></div><div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 overflow-hidden mb-10"><ArticleLayout article={previewData} onBack={handleTogglePreview} /></div></div>
                                 ) : (
