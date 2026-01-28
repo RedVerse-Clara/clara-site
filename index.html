@@ -33,7 +33,8 @@ import {
   X,
   Image as ImageIcon,
   Save,
-  ArrowLeft
+  ArrowLeft,
+  CheckCircle2
 } from 'lucide-react';
 
 // --- CONFIGURATION FIREBASE ---
@@ -55,6 +56,11 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
+  // États pour l'Atelier
+  const [isSavingHero, setIsSavingHero] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
+  const [heroForm, setHeroForm] = useState({ url: '', alt: '' });
+  
   const [secretClicks, setSecretClicks] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -63,7 +69,7 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
-  // Gestion de l'authentification (Règle 3)
+  // Gestion de l'authentification
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -88,22 +94,24 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Chargement des données (Règles 1 & 2)
+  // Chargement des données en temps réel
   useEffect(() => {
     if (!user) return;
 
-    // Chargement des articles
+    // Articles
     const articlesRef = collection(db, 'artifacts', appId, 'public', 'data', 'articles');
     const unsubscribeArticles = onSnapshot(articlesRef, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setArticles(docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
     }, (error) => console.error("Firestore Articles Error:", error));
 
-    // Chargement des réglages Hero
+    // Réglages Hero
     const heroRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'hero');
     const unsubscribeHero = onSnapshot(heroRef, (snapshot) => {
       if (snapshot.exists()) {
-        setHeroSettings(snapshot.data());
+        const data = snapshot.data();
+        setHeroSettings(data);
+        setHeroForm({ url: data.imageUrl, alt: data.imageAlt });
       }
     }, (error) => console.error("Firestore Settings Error:", error));
 
@@ -141,16 +149,23 @@ export default function App() {
   const handleUpdateHero = async (e) => {
     e.preventDefault();
     if (user?.uid !== ADMIN_UID) return;
-    const fd = new FormData(e.target);
+    
+    setIsSavingHero(true);
+    setSaveStatus(null);
+
     const newHero = {
-      imageUrl: fd.get('heroUrl'),
-      imageAlt: fd.get('heroAlt')
+      imageUrl: heroForm.url,
+      imageAlt: heroForm.alt
     };
+
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'hero'), newHero);
-      alert("Page d'accueil mise à jour !");
+      setSaveStatus("success");
+      setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
-      alert("Erreur lors de la mise à jour.");
+      setSaveStatus("error");
+    } finally {
+      setIsSavingHero(false);
     }
   };
 
@@ -267,6 +282,7 @@ export default function App() {
                     src={heroSettings.imageUrl} 
                     alt={heroSettings.imageAlt} 
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                    key={heroSettings.imageUrl} // Forcer le rechargement si l'URL change
                     onError={(e) => { e.target.src = 'https://via.placeholder.com/800x1000?text=Clara'; }}
                   />
                 </div>
@@ -331,7 +347,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Gestion Hero Dynamique */}
+            {/* Gestion Hero Dynamique - VERSION CORRIGÉE */}
             <div className="grid md:grid-cols-3 gap-8 mb-16">
               <div className="md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                 <h3 className="font-bold mb-6 flex items-center gap-2 text-[#004D40]"><ImageIcon size={20}/> Image de la page d'accueil</h3>
@@ -339,21 +355,49 @@ export default function App() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL de la photo (Hero)</label>
-                      <input name="heroUrl" defaultValue={heroSettings.imageUrl} placeholder="clara-hero.jpg" className="w-full p-3 border rounded-xl outline-none bg-gray-50 focus:bg-white" required />
+                      <input 
+                        value={heroForm.url} 
+                        onChange={e => setHeroForm({...heroForm, url: e.target.value})}
+                        placeholder="clara-hero.jpg" 
+                        className="w-full p-3 border rounded-xl outline-none bg-gray-50 focus:bg-white transition" 
+                        required 
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Tag ALT SEO Hero</label>
-                      <input name="heroAlt" defaultValue={heroSettings.imageAlt} placeholder="Clara portant un ensemble..." className="w-full p-3 border rounded-xl outline-none bg-gray-50 focus:bg-white" required />
+                      <input 
+                        value={heroForm.alt} 
+                        onChange={e => setHeroForm({...heroForm, alt: e.target.value})}
+                        placeholder="Clara portant un ensemble..." 
+                        className="w-full p-3 border rounded-xl outline-none bg-gray-50 focus:bg-white transition" 
+                        required 
+                      />
                     </div>
                   </div>
-                  <button className="bg-[#004D40] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-[#003d33] transition shadow-lg">
-                    <Save size={16} /> Mettre à jour l'accueil
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <button 
+                      disabled={isSavingHero}
+                      className="bg-[#004D40] text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-[#003d33] transition shadow-lg disabled:opacity-50"
+                    >
+                      {isSavingHero ? (
+                        <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full"></div>
+                      ) : <Save size={16} />}
+                      {isSavingHero ? "Enregistrement..." : "Mettre à jour l'accueil"}
+                    </button>
+                    {saveStatus === 'success' && (
+                      <span className="text-emerald-600 flex items-center gap-1 font-bold text-sm animate-in fade-in">
+                        <CheckCircle2 size={16}/> Mise à jour réussie !
+                      </span>
+                    )}
+                    {saveStatus === 'error' && (
+                      <span className="text-red-500 font-bold text-sm">Erreur lors de la sauvegarde.</span>
+                    )}
+                  </div>
                 </form>
               </div>
               <div className="bg-[#004D40] text-white p-8 rounded-3xl shadow-lg flex flex-col justify-center">
                 <h4 className="font-serif italic text-xl mb-4">Conseil SEO</h4>
-                <p className="text-sm opacity-80 leading-relaxed">"Une photo d'accueil qui change chaque saison permet de garder ton site 'frais' aux yeux de tes lecteurs et de Google."</p>
+                <p className="text-sm opacity-80 leading-relaxed">"Les modifications faites ici sont visibles en temps réel sur la page d'accueil pour tout le monde."</p>
               </div>
             </div>
 
