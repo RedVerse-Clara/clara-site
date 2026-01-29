@@ -100,7 +100,7 @@
             return (
                 <article className="max-w-4xl mx-auto px-6 py-12 text-left fade-in">
                     <button onClick={onBack} className="text-[#004D40] font-bold mb-10 flex items-center gap-2 hover:text-[#6B0D0D] transition uppercase text-xs tracking-widest">
-                        <Icon name="ArrowLeft" size={16} /> Retour aux tests
+                        <Icon name="ChevronLeft" size={20} /> Retour aux tests
                     </button>
                     <header>
                         <span className="text-[#6B0D0D] font-bold uppercase tracking-widest text-[10px] mb-4 block">{article.category}</span>
@@ -131,7 +131,7 @@
             const [previewData, setPreviewData] = useState({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" });
             const [editingId, setEditingId] = useState(null);
             
-            // États pour le modal d'image personnalisé
+            // États pour le modal d'image personnalisé (Persistant)
             const [showImageModal, setShowImageModal] = useState(false);
             const [modalImageUrl, setModalImageUrl] = useState("");
             const [modalImageAlt, setModalImageAlt] = useState("");
@@ -172,7 +172,7 @@
                                 container: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'blockquote'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link', 'image', 'clean']],
                                 handlers: {
                                     image: () => {
-                                        // On ouvre notre modal personnalisé au lieu du prompt
+                                        // On ouvre notre modal personnalisé persistant
                                         setShowImageModal(true);
                                     }
                                 }
@@ -190,10 +190,9 @@
                     const index = range ? range.index : quillInstance.current.getLength();
                     quillInstance.current.insertEmbed(index, 'image', modalImageUrl);
                     
-                    // On injecte l'alt SEO
+                    // On injecte l'alt SEO dans le DOM de l'éditeur
                     setTimeout(() => {
                         const imgs = quillInstance.current.root.querySelectorAll('img');
-                        // On cherche l'image qui a la source qu'on vient de mettre (souvent la dernière ou celle à l'index)
                         const targetImg = Array.from(imgs).find(img => img.getAttribute('src') === modalImageUrl);
                         if (targetImg) targetImg.setAttribute('alt', modalImageAlt || "");
                     }, 100);
@@ -295,27 +294,28 @@
                         </div>
                     </nav>
 
-                    {/* MODAL IMAGE PERSISTANT */}
+                    {/* MODAL IMAGE PERSISTANT - VERROUILLÉ */}
                     {showImageModal && (
-                        <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-6 backdrop-blur-sm">
+                        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md">
                             <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in">
                                 <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3">
                                     <Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO
                                 </h3>
                                 <div className="space-y-5">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL du fichier (ex: clara.webp)</label>
-                                        <input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL du fichier (ex: photo1.webp)</label>
+                                        <input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Description SEO (Tag ALT)</label>
-                                        <input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte l'ensemble vert..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20" />
+                                        <input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte l'ensemble vert..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" />
                                     </div>
                                     <div className="flex gap-4 pt-4">
                                         <button onClick={() => setShowImageModal(false)} className="flex-1 py-4 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition">Annuler</button>
-                                        <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold hover:scale-[1.02] transition">Insérer</button>
+                                        <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold hover:scale-[1.02] transition shadow-lg">Insérer dans l'article</button>
                                     </div>
                                 </div>
+                                <p className="text-[9px] text-gray-400 mt-6 text-center uppercase tracking-widest">Fenêtre persistante - Veuillez valider ou annuler</p>
                             </div>
                         </div>
                     )}
@@ -427,7 +427,7 @@
                                                 </div>
                                                 <input name="excerpt" defaultValue={previewData.excerpt || ''} placeholder="Accroche SEO" className="w-full p-4 border rounded-xl outline-none" required />
                                                 <div className="space-y-2 text-left">
-                                                    <label className="text-[10px] font-bold uppercase text-gray-400">Contenu (Utilisez l'icône image pour les URLs & Alts)</label>
+                                                    <label className="text-[10px] font-bold uppercase text-gray-400">Récit du test (Utilisez l'icône image pour URLs & Alts)</label>
                                                     <div ref={quillRef} style={{height: '450px'}}></div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
@@ -453,10 +453,10 @@
                                                             <p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1">{art.category}</p>
                                                         </div>
                                                         <div className="flex gap-2">
-                                                            <button onClick={() => handleEditClick(art)} className="text-gray-600 hover:text-emerald p-3 transition-colors bg-gray-50 rounded-xl" title="Modifier">
+                                                            <button onClick={() => handleEditClick(art)} className="text-emerald-700 hover:bg-emerald-50 p-3 transition-colors bg-gray-50 rounded-xl" title="Modifier">
                                                                 <Icon name="Edit3" size={18} />
                                                             </button>
-                                                            <button onClick={() => setDeletingId(art.id)} className="text-gray-600 hover:text-red-500 p-3 transition-colors bg-gray-50 rounded-xl" title="Supprimer">
+                                                            <button onClick={() => setDeletingId(art.id)} className="text-red-700 hover:bg-red-50 p-3 transition-colors bg-gray-50 rounded-xl" title="Supprimer">
                                                                 <Icon name="Trash2" size={18} />
                                                             </button>
                                                         </div>
