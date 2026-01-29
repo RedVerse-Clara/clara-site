@@ -22,18 +22,18 @@
     }
     </script>
 
-    <!-- Scripts et Bibliothèques via CDN (Indispensable pour affichage direct navigateur) -->
+    <!-- Scripts et Bibliothèques via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@0.263.1"></script>
     
-    <!-- Quill Editor pour les articles -->
+    <!-- Quill Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     
-    <!-- Firebase SDK (Version Compat pour index.html sans compilation) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -52,7 +52,6 @@
         .bg-bordeaux { background-color: #6B0D0D; }
         .text-bordeaux { color: #6B0D0D; }
         
-        /* Styles pour l'éditeur Quill et le rendu HTML */
         .ql-container { font-family: 'DM Sans', sans-serif; font-size: 16px; border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; background: white; }
         .ql-toolbar { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; background: #f9fafb; }
         .ql-editor { min-height: 400px; }
@@ -74,7 +73,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = window.React;
 
-        // Configuration Firebase (Version Stable)
         const firebaseConfig = {
             apiKey: "AIzaSyBsir6uo65xG4IsfQgHhvbBuEC_srM8Ozo",
             authDomain: "le-choix-de-clara.firebaseapp.com",
@@ -144,7 +142,8 @@
             const [secretClicks, setSecretClicks] = useState(0);
             
             const [isPreview, setIsPreview] = useState(false);
-            const [previewData, setPreviewData] = useState({});
+            const [previewData, setPreviewData] = useState({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" });
+            const [editingId, setEditingId] = useState(null);
             
             const [email, setEmail] = useState("");
             const [password, setPassword] = useState("");
@@ -154,7 +153,6 @@
             const quillInstance = useRef(null);
             const formRef = useRef(null);
 
-            // Auth listener
             useEffect(() => {
                 const unsubscribe = auth.onAuthStateChanged((u) => {
                     setUser(u);
@@ -164,7 +162,6 @@
                 return () => unsubscribe();
             }, []);
 
-            // Articles listener
             useEffect(() => {
                 if (!user) return;
                 const unsubscribe = db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles')
@@ -175,12 +172,32 @@
                 return () => unsubscribe();
             }, [user]);
 
-            // Quill Initialization
+            // Initialisation améliorée de Quill avec gestion images personnalisée
             useEffect(() => {
                 if (view === 'admin' && !isPreview && quillRef.current) {
                     quillInstance.current = new Quill(quillRef.current, {
-                        theme: 'snow', placeholder: 'Racontez votre expérience...',
-                        modules: { toolbar: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'blockquote'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link', 'image', 'clean']] }
+                        theme: 'snow', placeholder: 'Racontez votre expérience produit ici...',
+                        modules: { 
+                            toolbar: {
+                                container: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'blockquote'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link', 'image', 'clean']],
+                                handlers: {
+                                    image: () => {
+                                        const url = prompt("URL de l'image (ex: photo1.webp) :");
+                                        if (url) {
+                                            const altText = prompt("Description SEO (ALT) de l'image :");
+                                            const range = quillInstance.current.getSelection();
+                                            quillInstance.current.insertEmbed(range.index, 'image', url);
+                                            // On attend que l'image soit insérée pour lui forcer son tag ALT
+                                            setTimeout(() => {
+                                                const imgs = quillInstance.current.root.querySelectorAll('img');
+                                                const lastImg = imgs[imgs.length - 1];
+                                                if (lastImg) lastImg.setAttribute('alt', altText || "");
+                                            }, 100);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     });
                     if (previewData.content) quillInstance.current.root.innerHTML = previewData.content;
                 }
@@ -221,9 +238,23 @@
                 }
             };
 
-            const handleAddArticle = (e) => {
+            const handleEditClick = (art) => {
+                setEditingId(art.id);
+                setPreviewData({ ...art });
+                window.scrollTo(0, 0);
+                // Si Quill est déjà chargé, on met à jour son contenu
+                if (quillInstance.current) quillInstance.current.root.innerHTML = art.content;
+            };
+
+            const handleCancelEdit = () => {
+                setEditingId(null);
+                setPreviewData({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" });
+                if (quillInstance.current) quillInstance.current.root.innerHTML = "";
+            };
+
+            const handleAddOrUpdateArticle = (e) => {
                 e.preventDefault();
-                const data = isPreview ? { ...previewData, createdAt: Date.now() } : {
+                const data = isPreview ? { ...previewData } : {
                     title: e.target.title.value,
                     category: e.target.category.value,
                     excerpt: e.target.excerpt.value,
@@ -231,13 +262,28 @@
                     imageUrl: e.target.imageUrl.value,
                     imageAlt: e.target.imageAlt.value,
                     affiliateLink: e.target.affiliateLink.value,
-                    createdAt: Date.now()
                 };
-                db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').add(data)
-                    .then(() => { setPreviewData({}); setIsPreview(false); setView('home'); window.scrollTo(0,0); });
+                
+                const col = db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles');
+                
+                if (editingId) {
+                    col.doc(editingId).update(data).then(() => {
+                        handleCancelEdit();
+                        setIsPreview(false);
+                        setView('home');
+                        window.scrollTo(0,0);
+                    });
+                } else {
+                    col.add({ ...data, createdAt: Date.now() }).then(() => {
+                        handleCancelEdit();
+                        setIsPreview(false);
+                        setView('home');
+                        window.scrollTo(0,0);
+                    });
+                }
             };
 
-            if (loading) return <div className="h-screen flex items-center justify-center bg-[#FDF5E6] font-serif italic text-[#004D40]">Initialisation...</div>;
+            if (loading) return <div className="h-screen flex items-center justify-center bg-[#FDF5E6] font-serif italic text-[#004D40]">Préparation de l'Atelier...</div>;
 
             return (
                 <div className="min-h-screen flex flex-col">
@@ -285,7 +331,6 @@
                                             <button onClick={() => document.getElementById('latest').scrollIntoView({behavior:'smooth'})} className="bg-[#6B0D0D] text-white px-10 py-5 rounded-xl font-bold shadow-xl btn-hover transition">Découvrir mes sélections</button>
                                         </div>
                                         <div className="aspect-[4/5] bg-gray-50 rounded-3xl flex items-center justify-center border-8 border-white shadow-2xl overflow-hidden relative">
-                                            {/* NOUVELLE IMAGE HERO MISE À JOUR */}
                                             <img src="clara-experte-avis-activewear-lechoixdeclara.webp" alt="Visage de Clara, experte IA avis activewear et cadeaux pour femmes" className="w-full h-full object-cover" />
                                         </div>
                                     </div>
@@ -315,38 +360,84 @@
 
                         {view === 'admin' && user && user.uid === ADMIN_UID && (
                             <div className="max-w-6xl mx-auto px-6 py-12 text-left fade-in">
-                                <div className="flex justify-between items-center mb-12 border-b pb-8"><h2 className="text-3xl font-serif text-[#004D40] font-bold">Atelier de Rédaction</h2><button onClick={() => { auth.signOut(); setView('home'); }} className="text-gray-400 hover:text-[#6B0D0D] flex items-center gap-2 font-bold transition"><Icon name="LogOut" size={18}/> Quitter</button></div>
+                                <div className="flex justify-between items-center mb-12 border-b pb-8">
+                                    <h2 className="text-3xl font-serif text-[#004D40] font-bold">
+                                        {editingId ? "Modifier le Test" : "Atelier de Rédaction"}
+                                    </h2>
+                                    <button onClick={() => { handleCancelEdit(); auth.signOut(); setView('home'); }} className="text-gray-400 hover:text-[#6B0D0D] flex items-center gap-2 font-bold transition"><Icon name="LogOut" size={18}/> Quitter</button>
+                                </div>
                                 
                                 {isPreview ? (
                                     <div className="space-y-8">
                                         <div className="flex justify-between items-center bg-emerald text-white p-6 rounded-2xl shadow-lg sticky top-24 z-[60]">
-                                            <div><p className="font-bold">Mode Prévisualisation</p></div>
-                                            <div className="flex gap-4"><button onClick={handleTogglePreview} className="bg-white/10 px-6 py-3 rounded-xl font-bold transition">Modifier</button><button onClick={handleAddArticle} className="bg-white text-emerald px-8 py-3 rounded-xl font-bold shadow-xl transition">Publier maintenant</button></div>
+                                            <div className="flex items-center gap-3">
+                                                <Icon name="Eye" />
+                                                <p className="font-bold">Mode Prévisualisation</p>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <button onClick={handleTogglePreview} className="bg-white/10 px-6 py-3 rounded-xl font-bold transition">Modifier</button>
+                                                <button onClick={handleAddOrUpdateArticle} className="bg-white text-emerald px-8 py-3 rounded-xl font-bold shadow-xl transition">
+                                                    {editingId ? "Enregistrer les modifications" : "Publier maintenant"}
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="bg-white rounded-[3rem] shadow-sm border overflow-hidden mb-10"><ArticleLayout article={previewData} onBack={handleTogglePreview} /></div>
                                     </div>
                                 ) : (
                                     <div className="grid lg:grid-cols-2 gap-12 items-start text-left">
                                         <div className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100">
-                                            <h3 className="font-bold mb-8 flex items-center gap-2 text-xl text-[#004D40]"><Icon name="Plus" /> Nouveau Test</h3>
-                                            <form ref={formRef} onSubmit={handleAddArticle} data-netlify="false" className="space-y-6 text-left">
+                                            <div className="flex justify-between items-center mb-8">
+                                                <h3 className="font-bold flex items-center gap-2 text-xl text-[#004D40]">
+                                                    <Icon name={editingId ? "Edit3" : "Plus"} /> 
+                                                    {editingId ? "Edition" : "Nouveau Test"}
+                                                </h3>
+                                                {editingId && (
+                                                    <button onClick={handleCancelEdit} className="text-xs text-gray-400 font-bold hover:text-red-500 uppercase tracking-widest">Annuler</button>
+                                                )}
+                                            </div>
+                                            <form ref={formRef} onSubmit={handleAddOrUpdateArticle} data-netlify="false" className="space-y-6 text-left">
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <input name="title" defaultValue={previewData.title || ''} placeholder="Nom produit" className="p-4 border rounded-xl outline-none" required />
                                                     <select name="category" defaultValue={previewData.category || 'ACTIVEWEAR'} className="p-4 border rounded-xl outline-none bg-gray-50"><option>ACTIVEWEAR</option><option>LOUNGEWEAR</option><option>BEACHWEAR</option><option>GEEK</option><option>TECH</option></select>
                                                 </div>
                                                 <input name="excerpt" defaultValue={previewData.excerpt || ''} placeholder="Accroche SEO" className="w-full p-4 border rounded-xl outline-none" required />
-                                                <div className="space-y-2 text-left"><label className="text-[10px] font-bold uppercase text-gray-400">Contenu (Un seul H1 auto, utilisez H2)</label><div ref={quillRef} style={{height: '450px'}}></div></div>
+                                                <div className="space-y-2 text-left">
+                                                    <label className="text-[10px] font-bold uppercase text-gray-400">Contenu (Utilisez l'icône image pour les URLs & Alts)</label>
+                                                    <div ref={quillRef} style={{height: '450px'}}></div>
+                                                </div>
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <input name="imageUrl" defaultValue={previewData.imageUrl || ''} placeholder="URL image" className="p-4 border rounded-xl outline-none bg-gray-50" required />
-                                                    <input name="imageAlt" defaultValue={previewData.imageAlt || ''} placeholder="ALT SEO" className="p-4 border rounded-xl outline-none bg-gray-50" />
+                                                    <input name="imageUrl" defaultValue={previewData.imageUrl || ''} placeholder="URL image couverture" className="p-4 border rounded-xl outline-none bg-gray-50" required />
+                                                    <input name="imageAlt" defaultValue={previewData.imageAlt || ''} placeholder="ALT SEO couverture" className="p-4 border rounded-xl outline-none bg-gray-50" />
                                                 </div>
                                                 <input name="affiliateLink" defaultValue={previewData.affiliateLink || ''} placeholder="Lien Amazon" className="w-full p-4 border rounded-xl outline-none" required />
-                                                <div className="grid grid-cols-2 gap-4 pt-4"><button type="button" onClick={handleTogglePreview} className="bg-emerald text-white py-5 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition"><Icon name="Eye" /> Prévisualiser</button><button className="bg-[#6B0D0D] text-white py-5 rounded-2xl font-bold shadow-lg transition">Publier</button></div>
+                                                <div className="grid grid-cols-2 gap-4 pt-4">
+                                                    <button type="button" onClick={handleTogglePreview} className="bg-emerald text-white py-5 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition"><Icon name="Eye" /> Prévisualiser</button>
+                                                    <button className="bg-[#6B0D0D] text-white py-5 rounded-2xl font-bold shadow-lg transition">
+                                                        {editingId ? "Mettre à jour" : "Publier"}
+                                                    </button>
+                                                </div>
                                             </form>
                                         </div>
                                         <div className="space-y-4">
                                             <h3 className="font-bold mb-8 text-[#004D40]">Articles en ligne ({articles.length})</h3>
-                                            <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar text-left">{articles.map(art => (<div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-100 shadow-sm"><div className="text-left overflow-hidden mr-4"><p className="font-bold text-sm truncate text-[#004D40]">{art.title}</p><p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1">{art.category}</p></div><button onClick={() => setDeletingId(art.id)} className="text-gray-200 hover:text-red-500 p-3 transition-colors bg-gray-50 rounded-xl"><Icon name="Trash2" size={18} /></button></div>))}</div>
+                                            <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar text-left">
+                                                {articles.map(art => (
+                                                    <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-100 shadow-sm hover:border-emerald/20 transition">
+                                                        <div className="text-left overflow-hidden mr-4">
+                                                            <p className="font-bold text-sm truncate text-[#004D40]">{art.title}</p>
+                                                            <p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1">{art.category}</p>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => handleEditClick(art)} className="text-gray-400 hover:text-emerald p-3 transition-colors bg-gray-50 rounded-xl" title="Modifier">
+                                                                <Icon name="Edit3" size={18} />
+                                                            </button>
+                                                            <button onClick={() => setDeletingId(art.id)} className="text-gray-400 hover:text-red-500 p-3 transition-colors bg-gray-50 rounded-xl" title="Supprimer">
+                                                                <Icon name="Trash2" size={18} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -358,7 +449,7 @@
                         <div className="container mx-auto grid md:grid-cols-3 gap-16 text-left">
                             <div className="text-left">
                                 <div className="text-3xl font-serif font-bold mb-8 cursor-default select-none text-white">LeCh<span onClick={handleAdminTrigger} className="cursor-default hover:text-[#6B0D0D] transition-colors duration-200">o</span>ixDeClara</div>
-                                <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs">Clara, 32 ans, 1m78. Une expertise athlétique pour guider l'homme moderne.</p>
+                                <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs">Clara, 32 ans, 1m78. Une expertise athlétique au service des hommes.</p>
                             </div>
                             <div className="text-gray-500 text-[10px] space-y-4 uppercase tracking-widest font-bold text-left">
                                 <div onClick={() => window.scrollTo(0,0)} className="hover:text-white transition cursor-pointer">Mentions Légales</div>
