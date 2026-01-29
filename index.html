@@ -105,10 +105,10 @@
 
             return (
                 <article className="max-w-4xl mx-auto px-6 py-12 text-left fade-in">
-                    <button onClick={onBack} className="text-[#004D40] font-bold mb-10 flex items-center gap-2 hover:text-[#6B0D0D] transition uppercase text-xs tracking-widest">
+                    <button onClick={onBack} className="text-[#004D40] font-bold mb-10 flex items-center gap-2 hover:text-[#6B0D0D] transition uppercase text-xs tracking-widest text-left">
                         <Icon name="ChevronLeft" size={20} /> Retour
                     </button>
-                    <header>
+                    <header className="text-left">
                         <span className="text-[#6B0D0D] font-bold uppercase tracking-widest text-[10px] mb-4 block">{article.category}</span>
                         <h1 className="text-4xl md:text-6xl font-serif mb-8 text-[#004D40] leading-tight text-left">{article.title}</h1>
                         <p className="text-xl italic border-l-4 border-[#6B0D0D] pl-6 mb-12 bg-white py-8 rounded-r-2xl shadow-sm text-left text-gray-700">"{article.excerpt}"</p>
@@ -273,7 +273,6 @@
                 }
             };
 
-            // Fonction pour changer de catégorie avec scroll automatique
             const changeCategory = (cat) => {
                 setView('home');
                 setCategoryFilter(cat);
@@ -293,15 +292,13 @@
             if (loading) return <div className="h-screen flex items-center justify-center bg-[#FDF5E6] font-serif italic text-[#004D40]">Initialisation...</div>;
 
             return (
-                <div className="min-h-screen flex flex-col">
+                <div className="min-h-screen flex flex-col text-left">
                     <nav className="bg-white border-b sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-center shadow-sm gap-4">
                         <div className="text-2xl font-serif font-bold text-[#004D40] cursor-pointer" onClick={() => {setView('home'); setCategoryFilter('ALL'); window.scrollTo(0,0);}}>LeChoixDe<span className="text-[#6B0D0D]">Clara</span>.fr</div>
-                        
                         <div className="flex items-center gap-8">
                             <button onClick={() => {setView('home'); setCategoryFilter('ALL'); window.scrollTo(0,0);}} className={`nav-link ${categoryFilter === 'ALL' ? 'active' : ''}`}>Accueil</button>
                             <button onClick={() => changeCategory('MODE')} className={`nav-link ${categoryFilter === 'MODE' ? 'active' : ''}`}>Le Dressing</button>
                             <button onClick={() => changeCategory('GEEK')} className={`nav-link ${categoryFilter === 'GEEK' ? 'active' : ''}`}>Le Coin Geek</button>
-                            
                             {user && user.uid === ADMIN_UID && view !== 'admin' && (
                                 <button onClick={() => setView('admin')} className="bg-[#004D40] text-white px-4 py-2 rounded-full text-[10px] font-bold flex items-center gap-2 btn-hover ml-4 tracking-widest uppercase">
                                     <Icon name="Settings" size={14} /> Admin
@@ -312,12 +309,12 @@
 
                     {/* MODAL IMAGE PERSISTANT */}
                     {showImageModal && (
-                        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md">
+                        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md text-left">
                             <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in animate-in zoom-in duration-200">
                                 <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3"><Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO</h3>
                                 <div className="space-y-5 text-left">
-                                    <div><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL du fichier</label><input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" autoFocus /></div>
-                                    <div><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Description SEO (ALT)</label><input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" /></div>
+                                    <div className="text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">URL du fichier</label><input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" autoFocus /></div>
+                                    <div className="text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">Description SEO (ALT)</label><input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" /></div>
                                     <div className="flex gap-4 pt-4">
                                         <button onClick={() => setShowImageModal(false)} className="flex-1 py-4 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition">Annuler</button>
                                         <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold shadow-lg">Insérer</button>
@@ -328,8 +325,8 @@
                     )}
 
                     {showLoginModal && (
-                        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-6 backdrop-blur-sm fade-in">
-                            <div className="bg-white p-10 rounded-3xl max-w-md w-full shadow-2xl relative">
+                        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-6 backdrop-blur-sm fade-in text-left">
+                            <div className="bg-white p-10 rounded-3xl max-w-md w-full shadow-2xl relative text-left">
                                 <button onClick={() => setShowLoginModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black text-2xl font-bold">&times;</button>
                                 <div className="text-center mb-8"><Icon name="Lock" size={40} className="text-[#6B0D0D] mb-4" /><h2 className="text-2xl font-serif text-[#004D40]">Admin</h2></div>
                                 <form onSubmit={handleLogin} className="space-y-4">
@@ -343,7 +340,7 @@
                     )}
 
                     {deletingId && (
-                        <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-md fade-in">
+                        <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-md fade-in text-left">
                             <div className="bg-white p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
                                 <Icon name="AlertTriangle" size={48} className="text-red-500 mx-auto mb-4" /><h3 className="text-xl font-bold mb-2 text-[#004D40]">Supprimer ?</h3>
                                 <div className="flex gap-3 mt-6"><button onClick={() => setDeletingId(null)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold">Non</button><button onClick={() => { db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').doc(deletingId).delete(); setDeletingId(null); }} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Oui</button></div>
@@ -351,46 +348,48 @@
                         </div>
                     )}
 
-                    <main className="flex-grow">
+                    <main className="flex-grow text-left">
                         {view === 'home' && (
                             <div className="fade-in">
-                                <section className="bg-white py-12 md:py-20 px-6 text-left border-b border-gray-50">
-                                    <div className="container mx-auto grid md:grid-cols-2 gap-16 items-center">
+                                {/* PROPOSITION 1 : ACCUEIL COMPACT MAGASINE */}
+                                <section className="bg-white py-8 md:py-12 px-6 text-left border-b border-gray-50">
+                                    <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
                                         <div className="text-left">
-                                            <span className="bg-[#004D40] text-white px-4 py-1 rounded-full text-[10px] font-bold mb-6 inline-block uppercase tracking-widest tracking-tighter">28 ANS | 1M78 | EXPERTE CADEAUX</span>
-                                            <h1 className="text-5xl md:text-7xl font-serif leading-tight mb-8 text-[#004D40]">L'arme secrète pour <span className="text-[#6B0D0D] italic">ses</span> cadeaux.</h1>
-                                            <p className="text-lg text-gray-600 mb-10 italic border-l-4 border-[#6B0D0D] pl-6 leading-relaxed">"Salut, moi c'est Clara. Rousse et passionnée. Je porte et je teste tout ce qu'elle veut vraiment pour que tu ne puisses plus te rater."</p>
-                                            <button onClick={() => document.getElementById('latest').scrollIntoView({behavior:'smooth'})} className="bg-[#6B0D0D] text-white px-10 py-5 rounded-xl font-bold shadow-xl btn-hover transition uppercase text-xs tracking-widest">Voir mes tests</button>
+                                            <span className="bg-[#004D40] text-white px-4 py-1 rounded-full text-[10px] font-bold mb-4 inline-block uppercase tracking-widest tracking-tighter">28 ANS | 1M78 | EXPERTE CADEAUX</span>
+                                            <h1 className="text-4xl md:text-6xl font-serif leading-tight mb-6 text-[#004D40]">L'arme secrète pour <span className="text-[#6B0D0D] italic">ses</span> cadeaux.</h1>
+                                            <p className="text-base text-gray-600 mb-8 italic border-l-4 border-[#6B0D0D] pl-6 leading-relaxed max-w-lg text-left">"Moi c'est Clara. Je teste ce qu'elle veut vraiment recevoir pour que tu ne puisses plus te rater."</p>
+                                            <button onClick={() => document.getElementById('latest').scrollIntoView({behavior:'smooth'})} className="bg-[#6B0D0D] text-white px-10 py-4 rounded-xl font-bold shadow-xl btn-hover transition uppercase text-xs tracking-widest">Voir mes tests</button>
                                         </div>
-                                        <div className="aspect-[4/5] bg-gray-50 rounded-3xl flex items-center justify-center border-8 border-white shadow-2xl overflow-hidden relative group">
-                                            <img src="clara-experte-avis-activewear-lechoixdeclara.webp" alt="Visage de Clara, experte IA avis activewear et cadeaux pour femmes" className="w-full h-full object-cover group-hover:scale-105 transition duration-1000" />
+                                        {/* Photo Clara plus petite pour laisser voir les articles */}
+                                        <div className="hidden md:block max-w-sm ml-auto aspect-[4/5] bg-gray-50 rounded-3xl flex items-center justify-center border-8 border-white shadow-xl overflow-hidden relative group">
+                                            <img src="clara-experte-avis-activewear-lechoixdeclara.webp" alt="Clara influenceuse IA" className="w-full h-full object-cover group-hover:scale-105 transition duration-1000" />
                                         </div>
                                     </div>
                                 </section>
                                 
-                                <section id="latest" className="py-20 px-6 container mx-auto text-left">
-                                    <div className="flex flex-col md:flex-row justify-between items-baseline mb-16 gap-4">
-                                        <h2 className="text-4xl font-serif text-[#004D40]">
+                                <section id="latest" className="py-12 md:py-16 px-6 container mx-auto text-left">
+                                    <div className="flex flex-col md:flex-row justify-between items-baseline mb-12 gap-4 text-left">
+                                        <h2 className="text-4xl font-serif text-[#004D40] text-left">
                                             {categoryFilter === 'ALL' ? 'Derniers tests de Clara' : 
                                              categoryFilter === 'MODE' ? 'Le Dressing de Clara' : 'Le Coin Geek'}
                                         </h2>
                                         {categoryFilter !== 'ALL' && (
                                             <span className="bg-[#FDF5E6] border border-[#004D40]/20 text-[#004D40] text-[10px] px-4 py-1 rounded-full font-bold uppercase tracking-widest">
-                                                Filtre : {categoryFilter}
+                                                Filtre : {categoryFilter === 'MODE' ? 'Le Dressing' : 'Le Coin Geek'}
                                             </span>
                                         )}
                                     </div>
                                     
-                                    <div className="grid md:grid-cols-3 gap-10">
+                                    <div className="grid md:grid-cols-3 gap-10 text-left">
                                         {filteredArticles.map(article => (
-                                            <div key={article.id} onClick={() => { setSelectedArticle(article); setView('article'); window.scrollTo(0,0); }} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover">
-                                                <div className="h-64 bg-gray-100 relative overflow-hidden text-left">
+                                            <div key={article.id} onClick={() => { setSelectedArticle(article); setView('article'); window.scrollTo(0,0); }} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover text-left">
+                                                <div className="h-64 bg-gray-100 relative overflow-hidden text-left text-left">
                                                     <span className="absolute top-4 left-4 bg-emerald text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-sm">{article.category}</span>
                                                     {article.imageUrl && <img src={article.imageUrl} alt={article.imageAlt || article.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />}
                                                 </div>
                                                 <div className="p-8 text-left">
-                                                    <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-[#6B0D0D] transition">{article.title}</h3>
-                                                    <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic">{article.excerpt}</p>
+                                                    <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-[#6B0D0D] transition text-left">{article.title}</h3>
+                                                    <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic text-left">{article.excerpt}</p>
                                                     <div className="flex justify-between items-center text-[#004D40] font-bold text-[10px] uppercase tracking-tighter"><span>Lire le test complet</span><Icon name="ChevronRight" size={16} /></div>
                                                 </div>
                                             </div>
@@ -416,13 +415,13 @@
                                             {editingId && <button onClick={handleCancelEdit} className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest transition">Annuler</button>}
                                         </div>
                                         <form ref={formRef} onSubmit={handleAddOrUpdateArticle} className="space-y-6">
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-2 gap-4 text-left">
                                                 <input name="title" defaultValue={previewData.title || ''} placeholder="Nom produit" className="p-4 border rounded-xl outline-none" required />
                                                 <select name="category" defaultValue={previewData.category || 'ACTIVEWEAR'} className="p-4 border rounded-xl outline-none bg-gray-50"><option>ACTIVEWEAR</option><option>LOUNGEWEAR</option><option>BEACHWEAR</option><option>GEEK</option><option>TECH</option></select>
                                             </div>
                                             <input name="excerpt" defaultValue={previewData.excerpt || ''} placeholder="Accroche SEO" className="w-full p-4 border rounded-xl outline-none" required />
-                                            <div className="space-y-2"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Récit du test</label><div ref={quillRef} style={{height: '450px'}}></div></div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2 text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Récit du test</label><div ref={quillRef} style={{height: '450px'}}></div></div>
+                                            <div className="grid grid-cols-2 gap-4 text-left">
                                                 <input name="imageUrl" defaultValue={previewData.imageUrl || ''} placeholder="URL image couverture" className="p-4 border rounded-xl outline-none bg-gray-50" required />
                                                 <input name="imageAlt" defaultValue={previewData.imageAlt || ''} placeholder="ALT SEO couverture" className="p-4 border rounded-xl outline-none bg-gray-50" />
                                             </div>
@@ -435,20 +434,21 @@
                                     </div>
                                     <div className="space-y-4">
                                         <h3 className="font-bold mb-8 text-[#004D40] flex items-center justify-between"><span>Articles en ligne</span><span className="bg-[#004D40]/10 text-[#004D40] px-3 py-1 rounded-full text-xs font-mono">{articles.length}</span></h3>
-                                        <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar pr-1">
+                                        <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar pr-1 text-left">
                                             {articles.map(art => (
-                                                <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-200 shadow-sm hover:border-[#004D40]/20 transition duration-300">
+                                                <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-200 shadow-sm hover:border-[#004D40]/20 transition duration-300 text-left">
                                                     <div className="text-left overflow-hidden mr-4">
                                                         <p className="font-bold text-sm truncate text-[#004D40]">{art.title}</p>
                                                         <p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1 tracking-wider">{art.category}</p>
                                                     </div>
-                                                    <div className="flex gap-3">
-                                                        {/* BOUTONS ACTIONS AVEC PASTILLES COULEUR PLEINES */}
-                                                        <button onClick={() => handleEditClick(art)} className="bg-emerald-700 hover:bg-emerald-800 text-white p-3 transition-all rounded-xl shadow-lg border border-emerald-900" title="Modifier">
-                                                            <Icon name="Edit3" size={18} />
+                                                    <div className="flex gap-2 shrink-0">
+                                                        {/* BOUTON MODIFIER - VERT */}
+                                                        <button onClick={() => handleEditClick(art)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl shadow-md border border-emerald-700 flex items-center gap-1 transition-all" title="Modifier">
+                                                            <Icon name="Edit3" size={16} /> <span className="text-[9px] font-bold uppercase">Editer</span>
                                                         </button>
-                                                        <button onClick={() => setDeletingId(art.id)} className="bg-red-600 hover:bg-red-700 text-white p-3 transition-all rounded-xl shadow-lg border border-red-800" title="Supprimer">
-                                                            <Icon name="Trash2" size={18} />
+                                                        {/* BOUTON SUPPRIMER - ROUGE VIF */}
+                                                        <button onClick={() => setDeletingId(art.id)} className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl shadow-md border border-red-800 flex items-center gap-1 transition-all" title="Supprimer">
+                                                            <Icon name="Trash2" size={16} /> <span className="text-[9px] font-bold uppercase">Suppr.</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -464,7 +464,7 @@
                         <div className="container mx-auto grid md:grid-cols-3 gap-16 text-left">
                             <div className="text-left">
                                 <div className="text-3xl font-serif font-bold mb-8 cursor-default select-none text-white">LeCh<span onClick={handleAdminTrigger} className="cursor-default hover:text-[#6B0D0D] transition-colors duration-200">o</span>ixDeClara</div>
-                                <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs">Clara, 28 ans, 1m78. Une expertise athlétique au service des hommes.</p>
+                                <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs text-left">Clara, 28 ans, 1m78. Une expertise athlétique au service des hommes.</p>
                             </div>
                             <div className="text-gray-500 text-[10px] space-y-4 uppercase tracking-widest font-bold text-left">
                                 <div onClick={() => window.scrollTo(0,0)} className="hover:text-white transition cursor-pointer">Mentions Légales</div>
