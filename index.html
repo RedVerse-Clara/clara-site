@@ -44,7 +44,7 @@
         
         .html-content h1, .html-content h2, .html-content h3 { font-family: 'Merriweather', serif; color: #004D40; margin-top: 2rem; margin-bottom: 1rem; font-weight: bold; }
         .html-content p { margin-bottom: 1rem; line-height: 1.8; color: #374151; }
-        .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 4px solid white; }
+        .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 8px solid white; }
         .html-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -131,7 +131,6 @@
             const [previewData, setPreviewData] = useState({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" });
             const [editingId, setEditingId] = useState(null);
             
-            // États pour le modal d'image personnalisé
             const [showImageModal, setShowImageModal] = useState(false);
             const [modalImageUrl, setModalImageUrl] = useState("");
             const [modalImageAlt, setModalImageAlt] = useState("");
@@ -173,8 +172,9 @@
                                 container: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'blockquote'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link', 'image', 'clean']],
                                 handlers: {
                                     image: function() {
-                                        // On sauvegarde l'emplacement du curseur AVANT d'ouvrir le modal
-                                        setSavedRange(this.quill.getSelection());
+                                        // On sauvegarde la position du curseur immédiatement
+                                        const range = this.quill.getSelection(true);
+                                        setSavedRange(range);
                                         setShowImageModal(true);
                                     }
                                 }
@@ -189,25 +189,25 @@
             const submitImageToQuill = () => {
                 if (modalImageUrl && quillInstance.current) {
                     const quill = quillInstance.current;
-                    // Utiliser le range sauvegardé ou la fin du doc
-                    const range = savedRange || { index: quill.getLength() };
+                    // On utilise l'index sauvegardé, sinon la fin
+                    const index = savedRange ? savedRange.index : quill.getLength();
                     
-                    quill.insertEmbed(range.index, 'image', modalImageUrl);
+                    // Insertion de l'image
+                    quill.insertEmbed(index, 'image', modalImageUrl);
                     
-                    // Injection immédiate du ALT dans le DOM
+                    // Mise à jour du tag ALT dans le DOM après rendu
                     setTimeout(() => {
                         const imgs = quill.root.querySelectorAll('img');
                         const targetImg = Array.from(imgs).find(img => img.getAttribute('src') === modalImageUrl);
                         if (targetImg) {
                             targetImg.setAttribute('alt', modalImageAlt || "");
-                            targetImg.setAttribute('title', modalImageAlt || ""); // Pour le hover
                         }
-                    }, 50);
+                        // On force le focus et on place le curseur après l'image
+                        quill.focus();
+                        quill.setSelection(index + 1);
+                    }, 100);
 
-                    // Placer le curseur après l'image
-                    quill.setSelection(range.index + 1);
-
-                    // Reset et fermeture
+                    // Reset
                     setModalImageUrl("");
                     setModalImageAlt("");
                     setShowImageModal(false);
@@ -299,22 +299,22 @@
                 <div className="min-h-screen flex flex-col">
                     <nav className="bg-white border-b sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
                         <div className="text-2xl font-serif font-bold text-[#004D40] cursor-pointer" onClick={() => {setView('home'); setIsPreview(false); window.scrollTo(0,0);}}>LeChoixDe<span className="text-[#6B0D0D]">Clara</span>.fr</div>
-                        <div className="flex items-center gap-6">
-                            <button onClick={() => {setView('home'); setIsPreview(false); window.scrollTo(0,0);}} className="hidden md:block text-[10px] uppercase font-bold tracking-widest hover:text-[#6B0D0D]">Accueil</button>
+                        <div className="flex items-center gap-6 text-left">
+                            <button onClick={() => {setView('home'); setIsPreview(false); window.scrollTo(0,0);}} className="hidden md:block text-[10px] uppercase font-bold tracking-widest hover:text-[#6B0D0D] transition">Accueil</button>
                             {user && user.uid === ADMIN_UID && view !== 'admin' && <button onClick={() => setView('admin')} className="bg-[#004D40] text-white px-4 py-2 rounded-full text-[10px] font-bold flex items-center gap-2 btn-hover"><Icon name="Settings" size={14} /> Dashboard</button>}
                         </div>
                     </nav>
 
-                    {/* MODAL IMAGE PERSISTANT - VERROUILLÉ */}
+                    {/* MODAL IMAGE PERSISTANT - POSITION FIXE */}
                     {showImageModal && (
                         <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md">
-                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in scale-in">
+                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in animate-in zoom-in duration-200">
                                 <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3">
                                     <Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO
                                 </h3>
                                 <div className="space-y-5">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL du fichier (ex: photo1.webp)</label>
+                                        <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL du fichier (ex: photo.webp)</label>
                                         <input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" autoFocus />
                                     </div>
                                     <div className="space-y-1">
@@ -323,10 +323,10 @@
                                     </div>
                                     <div className="flex gap-4 pt-4">
                                         <button onClick={() => setShowImageModal(false)} className="flex-1 py-4 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition">Annuler</button>
-                                        <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold hover:scale-[1.02] transition shadow-lg">Insérer dans l'article</button>
+                                        <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold hover:scale-[1.02] transition shadow-lg">Insérer</button>
                                     </div>
                                 </div>
-                                <p className="text-[9px] text-gray-400 mt-6 text-center uppercase tracking-widest italic">Veuillez valider pour insérer l'image.</p>
+                                <p className="text-[9px] text-gray-400 mt-6 text-center uppercase tracking-widest italic">Validez pour insérer l'image à l'endroit du curseur.</p>
                             </div>
                         </div>
                     )}
@@ -340,7 +340,7 @@
                                     <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="Email" className="w-full p-4 border rounded-xl" required />
                                     <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Pass" className="w-full p-4 border rounded-xl" required />
                                     {authError && <p className="text-red-500 text-xs font-bold text-center">{authError}</p>}
-                                    <button className="w-full bg-[#004D40] text-white py-4 rounded-xl font-bold uppercase btn-hover">S'identifier</button>
+                                    <button className="w-full bg-[#004D40] text-white py-4 rounded-xl font-bold uppercase btn-hover transition">S'identifier</button>
                                 </form>
                             </div>
                         </div>
@@ -350,7 +350,7 @@
                         <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-md fade-in">
                             <div className="bg-white p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
                                 <Icon name="AlertTriangle" size={48} className="text-red-500 mx-auto mb-4" /><h3 className="text-xl font-bold mb-2 text-[#004D40]">Supprimer ?</h3>
-                                <div className="flex gap-3 mt-6"><button onClick={() => setDeletingId(null)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold">Non</button><button onClick={() => { db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').doc(deletingId).delete(); setDeletingId(null); }} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Oui</button></div>
+                                <div className="flex gap-3 mt-6"><button onClick={() => setDeletingId(null)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold">Non</button><button onClick={confirmDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Oui</button></div>
                             </div>
                         </div>
                     )}
@@ -375,7 +375,7 @@
                                     <h2 className="text-4xl font-serif mb-16 text-[#004D40]">Derniers tests de Clara</h2>
                                     <div className="grid md:grid-cols-3 gap-10">
                                         {articles.map(article => (
-                                            <div key={article.id} onClick={() => { setSelectedArticle(article); setView('article'); window.scrollTo(0,0); }} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover">
+                                            <div key={article.id} onClick={() => { setSelectedArticle(article); setView('article'); window.scrollTo(0,0); }} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover">
                                                 <div className="h-64 bg-gray-100 relative overflow-hidden text-left">
                                                     <span className="absolute top-4 left-4 bg-emerald text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-sm">{article.category}</span>
                                                     {article.imageUrl && <img src={article.imageUrl} alt={article.imageAlt || article.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />}
@@ -428,7 +428,7 @@
                                                     {editingId ? "Edition" : "Nouveau Test"}
                                                 </h3>
                                                 {editingId && (
-                                                    <button onClick={handleCancelEdit} className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest">Annuler</button>
+                                                    <button onClick={handleCancelEdit} className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest transition">Annuler</button>
                                                 )}
                                             </div>
                                             <form ref={formRef} onSubmit={handleAddOrUpdateArticle} data-netlify="false" className="space-y-6 text-left">
@@ -438,7 +438,7 @@
                                                 </div>
                                                 <input name="excerpt" defaultValue={previewData.excerpt || ''} placeholder="Accroche SEO" className="w-full p-4 border rounded-xl outline-none" required />
                                                 <div className="space-y-2 text-left">
-                                                    <label className="text-[10px] font-bold uppercase text-gray-400">Récit du test (Utilisez l'icône image pour URLs & Alts)</label>
+                                                    <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Contenu (Insertion d'image à la position du curseur)</label>
                                                     <div ref={quillRef} style={{height: '450px'}}></div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
@@ -446,29 +446,31 @@
                                                     <input name="imageAlt" defaultValue={previewData.imageAlt || ''} placeholder="ALT SEO couverture" className="p-4 border rounded-xl outline-none bg-gray-50" />
                                                 </div>
                                                 <input name="affiliateLink" defaultValue={previewData.affiliateLink || ''} placeholder="Lien Amazon" className="w-full p-4 border rounded-xl outline-none" required />
-                                                <div className="grid grid-cols-2 gap-4 pt-4">
-                                                    <button type="button" onClick={handleTogglePreview} className="bg-emerald text-white py-5 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition"><Icon name="Eye" /> Prévisualiser</button>
-                                                    <button className="bg-[#6B0D0D] text-white py-5 rounded-2xl font-bold shadow-lg transition">
+                                                <div className="grid grid-cols-2 gap-4 pt-4 text-center">
+                                                    <button type="button" onClick={handleTogglePreview} className="bg-emerald text-white py-5 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition hover:scale-[1.02]"><Icon name="Eye" /> Prévisualiser</button>
+                                                    <button className="bg-[#6B0D0D] text-white py-5 rounded-2xl font-bold shadow-lg transition hover:scale-[1.02]">
                                                         {editingId ? "Mettre à jour" : "Publier"}
                                                     </button>
                                                 </div>
                                             </form>
                                         </div>
                                         <div className="space-y-4">
-                                            <h3 className="font-bold mb-8 text-[#004D40]">Articles en ligne ({articles.length})</h3>
-                                            <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar text-left">
+                                            <h3 className="font-bold mb-8 text-[#004D40] flex items-center justify-between">
+                                                <span>Articles en ligne</span>
+                                                <span className="bg-[#004D40]/10 text-[#004D40] px-3 py-1 rounded-full text-xs font-mono">{articles.length}</span>
+                                            </h3>
+                                            <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar text-left pr-1">
                                                 {articles.map(art => (
-                                                    <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-200 shadow-sm hover:border-emerald/40 transition">
+                                                    <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-200 shadow-sm hover:border-[#004D40]/20 transition duration-300">
                                                         <div className="text-left overflow-hidden mr-4">
                                                             <p className="font-bold text-sm truncate text-[#004D40]">{art.title}</p>
-                                                            <p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1">{art.category}</p>
+                                                            <p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1 tracking-wider">{art.category}</p>
                                                         </div>
                                                         <div className="flex gap-2">
-                                                            {/* BOUTONS ACTIONS VISIBLES */}
-                                                            <button onClick={() => handleEditClick(art)} className="text-emerald-800 bg-emerald-50 hover:bg-emerald-100 p-3 transition-colors rounded-xl border border-emerald-100" title="Modifier">
+                                                            <button onClick={() => handleEditClick(art)} className="text-emerald-900 bg-emerald-50 hover:bg-emerald-100 p-3 transition-all rounded-xl border border-emerald-200" title="Modifier">
                                                                 <Icon name="Edit3" size={18} />
                                                             </button>
-                                                            <button onClick={() => setDeletingId(art.id)} className="text-red-700 bg-red-50 hover:bg-red-100 p-3 transition-colors rounded-xl border border-red-100" title="Supprimer">
+                                                            <button onClick={() => setDeletingId(art.id)} className="text-red-700 bg-red-50 hover:bg-red-100 p-3 transition-all rounded-xl border border-red-200" title="Supprimer">
                                                                 <Icon name="Trash2" size={18} />
                                                             </button>
                                                         </div>
