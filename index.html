@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="meta-title">LeChoixDeClara.fr | L'arme secrète pour ses cadeaux</title>
     
-    <!-- FAVICON -->
     <link rel="icon" type="image/png" href="favicon.png">
     
     <meta name="description" id="meta-desc" content="Clara, 28 ans, 1m78. Silhouette athlétique. Je t'aide à trouver LE cadeau pour ta chérie.">
@@ -36,19 +35,15 @@
         .font-serif { font-family: 'Merriweather', serif; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .bg-emerald { background-color: #004D40; }
-        .text-emerald { color: #004D40; }
-        .bg-bordeaux { background-color: #6B0D0D; }
-        .text-bordeaux { color: #6B0D0D; }
         
         .ql-container { font-family: 'DM Sans', sans-serif; font-size: 16px; border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; background: white; }
         .ql-toolbar { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; background: #f9fafb; }
         .ql-editor { min-height: 400px; }
         
-        .html-content h1, .html-content h2, .html-content h3 { font-family: 'Merriweather', serif; color: #004D40; margin-top: 2rem; margin-bottom: 1rem; font-weight: bold; }
-        .html-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; }
+        .html-content h1, .html-content h2, .html-content h3 { font-family: 'Merriweather', serif; color: #004D40; margin-top: 2rem; margin-bottom: 1rem; font-weight: bold; text-align: left; }
+        .html-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; text-align: left; }
         .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 4px solid white; }
-        .html-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
+        .html-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -60,6 +55,9 @@
         .nav-link::after { content: ''; position: absolute; bottom: -6px; left: 0; width: 0; height: 2px; background: #6B0D0D; transition: width 0.3s; }
         .nav-link.active { color: #004D40; }
         .nav-link.active::after { width: 100%; background: #004D40; }
+
+        .scale-in { animation: scaleIn 0.2s ease-out forwards; }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -110,11 +108,11 @@
 
             return (
                 <article className="max-w-4xl mx-auto px-6 py-12 text-left fade-in">
-                    <button onClick={onBack} className="text-[#004D40] font-bold mb-10 flex items-center gap-2 hover:text-[#6B0D0D] transition uppercase text-xs tracking-widest">
+                    <button onClick={onBack} className="text-[#004D40] font-bold mb-10 flex items-center gap-2 hover:text-[#6B0D0D] transition uppercase text-xs tracking-widest text-left">
                         <Icon name="ChevronLeft" size={20} /> Retour
                     </button>
-                    <header>
-                        <span className="text-[#6B0D0D] font-bold uppercase tracking-widest text-[10px] mb-4 block text-left">{article.category}</span>
+                    <header className="text-left">
+                        <span className="text-[#6B0D0D] font-bold uppercase tracking-widest text-[10px] mb-4 block">{article.category}</span>
                         <h1 className="text-4xl md:text-6xl font-serif mb-8 text-[#004D40] leading-tight text-left">{article.title}</h1>
                         <p className="text-xl italic border-l-4 border-[#6B0D0D] pl-6 mb-12 bg-white py-8 rounded-r-2xl shadow-sm text-left text-gray-700">"{article.excerpt}"</p>
                     </header>
@@ -161,25 +159,18 @@
             const quillInstance = useRef(null);
             const formRef = useRef(null);
 
-            // GESTION DE L'HISTORIQUE ET DES URLS PROFONDES (SEO)
             useEffect(() => {
                 const handlePopState = (event) => {
                     const params = new URLSearchParams(window.location.search);
                     const artId = params.get('a');
                     const page = params.get('p');
-                    
                     if (artId && articles.length > 0) {
                         const art = articles.find(a => a.id === artId);
                         if (art) { setView('article'); setSelectedArticle(art); return; }
                     }
-                    
                     if (page === 'about') { setView('about'); return; }
-                    
-                    setView('home');
-                    setCategoryFilter('ALL');
-                    setSelectedArticle(null);
+                    setView('home'); setCategoryFilter('ALL'); setSelectedArticle(null);
                 };
-                
                 window.addEventListener('popstate', handlePopState);
                 return () => window.removeEventListener('popstate', handlePopState);
             }, [articles]);
@@ -188,12 +179,10 @@
                 setView(newView);
                 setSelectedArticle(article);
                 setCategoryFilter(filter);
-                
                 let newUrl = window.location.pathname;
                 if (newView === 'article' && article) newUrl += `?a=${article.id}`;
                 else if (newView === 'about') newUrl += `?p=about`;
                 else if (newView === 'admin') newUrl += `?p=admin`;
-                
                 window.history.pushState({ view: newView, article, filter }, "", newUrl);
                 window.scrollTo(0, 0);
             };
@@ -202,7 +191,7 @@
                 const unsubscribe = auth.onAuthStateChanged((u) => {
                     setUser(u);
                     setLoading(false);
-                    if (!u) auth.signInAnonymously().catch(e => console.error("Auth error", e));
+                    if (!u) auth.signInAnonymously().catch(console.error);
                 });
                 return () => unsubscribe();
             }, []);
@@ -213,8 +202,6 @@
                         const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         const sorted = docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                         setArticles(sorted);
-                        
-                        // Détection URL initiale après chargement des données
                         const params = new URLSearchParams(window.location.search);
                         const artId = params.get('a');
                         const page = params.get('p');
@@ -368,11 +355,11 @@
 
                     {showImageModal && (
                         <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md text-left">
-                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in scale-in text-left">
-                                <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3 text-left"><Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO</h3>
-                                <div className="space-y-5 text-left">
-                                    <div className="text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">URL du fichier</label><input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50 text-left" autoFocus /></div>
-                                    <div className="text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">Description SEO (ALT)</label><input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50 text-left" /></div>
+                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in scale-in">
+                                <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3"><Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO</h3>
+                                <div className="space-y-5 text-left text-left">
+                                    <div className="text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1 text-left text-left">URL du fichier</label><input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50 text-left" autoFocus /></div>
+                                    <div className="text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1 text-left text-left">Description SEO (ALT)</label><input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50 text-left" /></div>
                                     <div className="flex gap-4 pt-4 text-left">
                                         <button onClick={() => setShowImageModal(false)} className="flex-1 py-4 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition text-left">Annuler</button>
                                         <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold shadow-lg text-left text-left">Insérer</button>
@@ -383,14 +370,14 @@
                     )}
 
                     {showLoginModal && (
-                        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-6 backdrop-blur-sm fade-in text-left">
-                            <div className="bg-white p-10 rounded-3xl max-w-md w-full shadow-2xl relative text-left">
+                        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-6 backdrop-blur-sm fade-in text-left text-left text-left">
+                            <div className="bg-white p-10 rounded-3xl max-w-md w-full shadow-2xl relative text-left text-left">
                                 <button onClick={() => setShowLoginModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black text-2xl font-bold text-left">&times;</button>
                                 <div className="text-center mb-8 text-left"><Icon name="Lock" size={40} className="text-[#6B0D0D] mb-4 text-left" /><h2 className="text-2xl font-serif text-[#004D40] text-left">Admin</h2></div>
-                                <form onSubmit={handleLogin} className="space-y-4 text-left">
+                                <form onSubmit={handleLogin} className="space-y-4 text-left text-left">
                                     <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="Email" className="w-full p-4 border rounded-xl text-left text-left" required />
                                     <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Pass" className="w-full p-4 border rounded-xl text-left text-left" required />
-                                    {authError && <p className="text-red-500 text-xs font-bold text-center text-left">{authError}</p>}
+                                    {authError && <p className="text-red-500 text-xs font-bold text-center text-left text-left">{authError}</p>}
                                     <button className="w-full bg-[#004D40] text-white py-4 rounded-xl font-bold uppercase btn-hover text-left text-left">S'identifier</button>
                                 </form>
                             </div>
@@ -398,60 +385,60 @@
                     )}
 
                     {deletingId && (
-                        <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-md fade-in text-left">
+                        <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-md fade-in text-left text-left">
                             <div className="bg-white p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl text-left">
                                 <Icon name="AlertTriangle" size={48} className="text-red-500 mx-auto mb-4 text-left" /><h3 className="text-xl font-bold mb-2 text-[#004D40] text-left">Supprimer ?</h3>
-                                <div className="flex gap-3 mt-6 text-left"><button onClick={() => setDeletingId(null)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-left">Non</button><button onClick={() => { db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').doc(deletingId).delete(); setDeletingId(null); }} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-left">Oui</button></div>
+                                <div className="flex gap-3 mt-6 text-left text-left"><button onClick={() => setDeletingId(null)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-left">Non</button><button onClick={() => { db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').doc(deletingId).delete(); setDeletingId(null); }} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-left text-left">Oui</button></div>
                             </div>
                         </div>
                     )}
 
                     <main className="flex-grow text-left text-left">
                         {view === 'home' && (
-                            <div className="fade-in text-left">
-                                <section className="bg-white py-8 md:py-12 px-6 text-left border-b border-gray-50 text-left">
-                                    <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center text-left text-left">
-                                        <div className="text-left text-left">
-                                            <span className="bg-[#004D40] text-white px-4 py-1 rounded-full text-[10px] font-bold mb-4 inline-block uppercase tracking-widest tracking-tighter text-left">28 ANS | 1M78 | EXPERTE CADEAUX</span>
-                                            <h1 className="text-4xl md:text-6xl font-serif leading-tight mb-6 text-[#004D40] text-left text-left">L'arme secrète pour <span className="text-[#6B0D0D] italic">ses</span> cadeaux.</h1>
-                                            <p className="text-base text-gray-600 mb-8 italic border-l-4 border-[#6B0D0D] pl-6 leading-relaxed max-w-lg text-left text-left text-left">"Moi c'est Clara. Je teste ce qu'elle veut vraiment recevoir pour que tu ne puisses plus te rater."</p>
-                                            <button onClick={() => document.getElementById('latest').scrollIntoView({behavior:'smooth'})} className="bg-[#6B0D0D] text-white px-10 py-4 rounded-xl font-bold shadow-xl btn-hover transition uppercase text-xs tracking-widest text-left text-left text-left">Voir mes tests</button>
+                            <div className="fade-in text-left text-left">
+                                <section className="bg-white py-8 md:py-12 px-6 text-left border-b border-gray-50 text-left text-left">
+                                    <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center text-left text-left text-left">
+                                        <div className="text-left text-left text-left">
+                                            <span className="bg-[#004D40] text-white px-4 py-1 rounded-full text-[10px] font-bold mb-4 inline-block uppercase tracking-widest tracking-tighter text-left text-left">28 ANS | 1M78 | EXPERTE CADEAUX</span>
+                                            <h1 className="text-4xl md:text-6xl font-serif leading-tight mb-6 text-[#004D40] text-left text-left text-left">L'arme secrète pour <span className="text-[#6B0D0D] italic">ses</span> cadeaux.</h1>
+                                            <p className="text-base text-gray-600 mb-8 italic border-l-4 border-[#6B0D0D] pl-6 leading-relaxed max-w-lg text-left text-left text-left text-left">"Moi c'est Clara. Je teste ce qu'elle veut vraiment recevoir pour que tu ne puisses plus te rater."</p>
+                                            <button onClick={() => document.getElementById('latest').scrollIntoView({behavior:'smooth'})} className="bg-[#6B0D0D] text-white px-10 py-4 rounded-xl font-bold shadow-xl btn-hover transition uppercase text-xs tracking-widest text-left text-left text-left text-left">Voir mes tests</button>
                                         </div>
-                                        <div className="hidden md:block max-w-sm ml-auto aspect-[4/5] bg-gray-50 rounded-3xl flex items-center justify-center border-8 border-white shadow-xl overflow-hidden relative group text-left">
-                                            <img src="clara-experte-avis-activewear-lechoixdeclara.webp" alt="Clara influenceuse IA" className="w-full h-full object-cover group-hover:scale-105 transition duration-1000 text-left" />
+                                        <div className="hidden md:block max-w-sm ml-auto aspect-[4/5] bg-gray-50 rounded-3xl flex items-center justify-center border-8 border-white shadow-xl overflow-hidden relative group text-left text-left">
+                                            <img src="clara-experte-avis-activewear-lechoixdeclara.webp" alt="Clara influenceuse IA" className="w-full h-full object-cover group-hover:scale-105 transition duration-1000 text-left text-left" />
                                         </div>
                                     </div>
                                 </section>
                                 
-                                <section id="latest" className="py-12 md:py-16 px-6 container mx-auto text-left text-left">
-                                    <div className="flex flex-col md:flex-row justify-between items-baseline mb-12 gap-4 text-left text-left">
-                                        <h2 className="text-4xl font-serif text-[#004D40] text-left text-left text-left text-left">
+                                <section id="latest" className="py-12 md:py-16 px-6 container mx-auto text-left text-left text-left">
+                                    <div className="flex flex-col md:flex-row justify-between items-baseline mb-12 gap-4 text-left text-left text-left text-left">
+                                        <h2 className="text-4xl font-serif text-[#004D40] text-left text-left text-left text-left text-left">
                                             {categoryFilter === 'ALL' ? 'Derniers tests de Clara' : 
                                              categoryFilter === 'MODE' ? 'Le Dressing de Clara' : 'Le Coin Geek'}
                                         </h2>
                                         {categoryFilter !== 'ALL' && (
-                                            <span className="bg-[#FDF5E6] border border-[#004D40]/20 text-[#004D40] text-[10px] px-4 py-1 rounded-full font-bold uppercase tracking-widest text-left text-left">
+                                            <span className="bg-[#FDF5E6] border border-[#004D40]/20 text-[#004D40] text-[10px] px-4 py-1 rounded-full font-bold uppercase tracking-widest text-left text-left text-left">
                                                 Filtre : {categoryFilter === 'MODE' ? 'Le Dressing' : 'Le Coin Geek'}
                                             </span>
                                         )}
                                     </div>
                                     
-                                    <div className="grid md:grid-cols-3 gap-10 text-left text-left">
+                                    <div className="grid md:grid-cols-3 gap-10 text-left text-left text-left">
                                         {filteredArticles.map(article => (
-                                            <div key={article.id} onClick={() => navigateTo('article', article)} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover text-left text-left">
-                                                <div className="h-64 bg-gray-100 relative overflow-hidden text-left text-left text-left text-left">
-                                                    <span className="absolute top-4 left-4 bg-emerald text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-sm text-left">{article.category}</span>
-                                                    {article.imageUrl && <img src={article.imageUrl} alt={article.imageAlt || article.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500 text-left" />}
+                                            <div key={article.id} onClick={() => navigateTo('article', article)} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover text-left text-left text-left">
+                                                <div className="h-64 bg-gray-100 relative overflow-hidden text-left text-left text-left text-left text-left text-left text-left">
+                                                    <span className="absolute top-4 left-4 bg-emerald text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-sm text-left text-left">{article.category}</span>
+                                                    {article.imageUrl && <img src={article.imageUrl} alt={article.imageAlt || article.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500 text-left text-left" />}
                                                 </div>
-                                                <div className="p-8 text-left text-left">
-                                                    <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-[#6B0D0D] transition text-left text-left">{article.title}</h3>
-                                                    <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic text-left text-left">{article.excerpt}</p>
-                                                    <div className="flex justify-between items-center text-[#004D40] font-bold text-[10px] uppercase tracking-tighter text-left text-left"><span>Lire le test complet</span><Icon name="ChevronRight" size={16} /></div>
+                                                <div className="p-8 text-left text-left text-left">
+                                                    <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-[#6B0D0D] transition text-left text-left text-left text-left">{article.title}</h3>
+                                                    <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic text-left text-left text-left text-left">{article.excerpt}</p>
+                                                    <div className="flex justify-between items-center text-[#004D40] font-bold text-[10px] uppercase tracking-tighter text-left text-left text-left text-left text-left"><span>Lire le test complet</span><Icon name="ChevronRight" size={16} /></div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                    {filteredArticles.length === 0 && <p className="text-center py-20 italic text-gray-400 text-left">Aucun test dans cette catégorie pour le moment.</p>}
+                                    {filteredArticles.length === 0 && <p className="text-center py-20 italic text-gray-400 text-left text-left">Aucun test dans cette catégorie pour le moment.</p>}
                                 </section>
                             </div>
                         )}
@@ -459,107 +446,100 @@
                         {view === 'article' && selectedArticle && <ArticleLayout article={selectedArticle} onBack={() => window.history.back()} />}
 
                         {view === 'about' && (
-                            <section className="max-w-4xl mx-auto px-6 py-20 text-left fade-in text-left">
-                                <h1 className="text-4xl md:text-6xl font-serif text-[#004D40] mb-12 text-left text-left text-left">À Propos : Qui est Clara ?</h1>
-                                <div className="grid md:grid-cols-2 gap-12 mb-16 items-center text-left">
-                                    <img src="clara-experte-avis-activewear-lechoixdeclara.webp" className="rounded-3xl shadow-2xl border-8 border-white text-left" alt="Portrait de Clara" />
-                                    <div className="space-y-6 text-left text-left text-left text-left text-left">
-                                        <p className="text-xl font-serif italic text-[#6B0D0D] text-left text-left">"Parce que trouver le cadeau parfait pour une femme ne devrait plus être une épreuve de force."</p>
-                                        <p className="text-gray-600 leading-relaxed text-left text-left text-left">Bienvenue sur mon site. Je m'appelle Clara. J'ai 28 ans, je mesure 1m78 et je possède une silhouette athlétique que j'entretiens avec passion. Mais au-delà des chiffres, je suis votre nouvelle alliée stratégique.</p>
+                            <section className="max-w-4xl mx-auto px-6 py-20 text-left fade-in text-left text-left">
+                                <h1 className="text-4xl md:text-6xl font-serif text-[#004D40] mb-12 text-left text-left text-left text-left text-left">À Propos : Qui est Clara ?</h1>
+                                <div className="grid md:grid-cols-2 gap-12 mb-16 items-center text-left text-left">
+                                    <img src="clara-experte-avis-activewear-lechoixdeclara.webp" className="rounded-3xl shadow-2xl border-8 border-white text-left text-left" alt="Portrait de Clara" />
+                                    <div className="space-y-6 text-left text-left text-left text-left text-left text-left">
+                                        <p className="text-xl font-serif italic text-[#6B0D0D] text-left text-left text-left">"Parce que trouver le cadeau parfait pour une femme ne devrait plus être une épreuve de force."</p>
+                                        <p className="text-gray-600 leading-relaxed text-left text-left text-left text-left">Bienvenue sur mon site. Je m'appelle Clara. J'ai 28 ans, je mesure 1m78 et je possède une silhouette athlétique que j'entretiens avec passion. Mais au-delà des chiffres, je suis votre nouvelle alliée stratégique.</p>
                                     </div>
                                 </div>
-                                <div className="html-content space-y-8 text-left text-left text-left">
-                                    <h2 className="text-left text-left text-left">Ma Mission : L'Arme Secrète des Hommes</h2>
-                                    <p className="text-left text-left text-left">Messieurs, soyons honnêtes : combien de fois avez-vous erré dans les rayons (physiques ou virtuels), totalement désemparés devant l'immensité du choix ? Entre les tailles approximatives, les matières qui grattent et les coupes qui ne ressemblent à rien une fois portées, l'achat d'un cadeau (qu'il s'agisse d'un vêtement de sport ou d'un gadget tech) est souvent un pari risqué.</p>
-                                    <p className="text-left text-left text-left">C'est là que j'interviens. <strong>LeChoixDeClara.fr</strong> n'est pas un blog de mode classique. C'est un laboratoire de tests sans concession. Mon but est simple : tester tout ce qu'elle rêve de recevoir pour que vous ne puissiez plus jamais vous tromper. Je porte, je lave, je plie, je connecte et j'éprouve chaque produit avant de vous donner mon verdict final.</p>
+                                <div className="html-content space-y-8 text-left text-left text-left text-left">
+                                    <h2 className="text-left text-left text-left text-left text-left">Ma Mission : L'Arme Secrète des Hommes</h2>
+                                    <p className="text-left text-left text-left text-left">Messieurs, soyons honnêtes : combien de fois avez-vous erré dans les rayons (physiques ou virtuels), totalement désemparés devant l'immensité du choix ? Entre les tailles approximatives, les matières qui grattent et les coupes qui ne ressemblent à rien une fois portées, l'achat d'un cadeau (qu'il s'agisse d'un vêtement de sport ou d'un gadget tech) est souvent un pari risqué.</p>
+                                    <p className="text-left text-left text-left text-left">C'est là que j'interviens. <strong>LeChoixDeClara.fr</strong> n'est pas un blog de mode classique. C'est un laboratoire de tests sans concession. Mon but est simple : tester tout ce qu'elle rêve de recevoir pour que vous ne puissiez plus jamais vous tromper. Je porte, je lave, je plie, je connecte et j'éprouve chaque produit avant de vous donner mon verdict final.</p>
                                     
-                                    <h2 className="text-left text-left text-left">Pourquoi une Égérie Numérique ?</h2>
-                                    <p className="text-left text-left text-left text-left">Oui, je suis une égérie numérique, née de l'intelligence artificielle et de la passion de mon créateur, Marc. Pourquoi ce choix ? Parce qu'en tant qu'IA, je peux incarner une constance et une précision que les réseaux sociaux traditionnels ont perdues. Ma morphologie (taille 1m78, silhouette en X) est un étalon fiable. Si un legging est trop court ou transparent sur moi, je vous le dis. Si un gadget tech est trop complexe ou décevant, je ne le cache pas.</p>
-                                    <p className="text-left text-left text-left text-left">Je ne suis pas là pour "liker" ou pour faire de la figuration. Je suis là pour analyser. Chaque test publié ici est le fruit d'une sélection rigoureuse. Je cherche le rapport qualité/prix imbattable, le design qui fera briller ses yeux et l'utilité réelle au quotidien.</p>
+                                    <h2 className="text-left text-left text-left text-left text-left">Pourquoi une Égérie Numérique ?</h2>
+                                    <p className="text-left text-left text-left text-left text-left">Oui, je suis une égérie numérique, née de l'intelligence artificielle et de la passion de mon créateur, Marc. Pourquoi ce choix ? Parce qu'en tant qu'IA, je peux incarner une constance et une précision que les réseaux sociaux traditionnels ont perdues. Ma morphologie (taille 1m78, silhouette en X) est un étalon fiable. Si un legging est trop court ou transparent sur moi, je vous le dis. Si un gadget tech est trop complexe ou décevant, je ne le cache pas.</p>
                                     
-                                    <h2 className="text-left text-left text-left text-left">Mon Expertise : Le Dressing et le Coin Geek</h2>
-                                    <p className="text-left text-left text-left text-left">Mon univers se divise en deux piliers qui me passionnent :</p>
-                                    <ul className="text-left text-left text-left text-left">
-                                        <li className="text-left text-left text-left text-left text-left text-left"><strong>Le Dressing :</strong> Spécialiste de l'Activewear (vêtements de sport), du Loungewear (confort à la maison) et du Beachwear. Je traque la qualité des tissus et l'élégance des coupes.</li>
-                                        <li className="text-left text-left text-left text-left text-left text-left"><strong>Le Coin Geek :</strong> Parce que l'esthétique n'empêche pas la passion technologique. Je teste des jeux vidéo (souvent "cozy" et immersifs), des accessoires de bureau et des gadgets tech qui allient utilité et style.</li>
+                                    <h2 className="text-left text-left text-left text-left text-left">Mon Expertise : Le Dressing et le Coin Geek</h2>
+                                    <ul className="text-left text-left text-left text-left text-left">
+                                        <li className="text-left text-left text-left text-left text-left text-left text-left"><strong>Le Dressing :</strong> Spécialiste de l'Activewear (vêtements de sport), du Loungewear (confort à la maison) et du Beachwear. Je traque la qualité des tissus et l'élégance des coupes.</li>
+                                        <li className="text-left text-left text-left text-left text-left text-left text-left"><strong>Le Coin Geek :</strong> Parce que l'esthétique n'empêche pas la passion technologique. Je teste des jeux vidéo (souvent "cozy" et immersifs), des accessoires de bureau et des gadgets tech qui allient utilité et style.</li>
                                     </ul>
                                     
-                                    <h2 className="text-left text-left text-left text-left">Mon Engagement : Indépendance et Transparence</h2>
-                                    <p className="text-left text-left text-left text-left text-left">Je ne reçois pas de cadeaux des marques pour dire du bien d'elles. Mes sélections sont basées sur mes propres recherches et mon sens critique. Pour financer l'existence de ce site et de mon atelier, je participe à des programmes d'affiliation (Amazon et Instant Gaming). Cela signifie que si vous achetez via mes liens, je reçois une petite commission qui ne change pas le prix pour vous, mais qui permet à Clara de continuer ses tests.</p>
-                                    <p className="text-left text-left text-left text-left text-left">Alors, respirez. Vous n'êtes plus seul pour ses cadeaux. Laissez-moi vous guider.</p>
-                                    <p className="font-bold text-[#004D40] text-left text-left text-left text-left">Clara, experte en cadeaux (et en vérité).</p>
-                                </div>
-                                <div className="mt-20 text-center text-left text-left">
-                                    <button onClick={() => navigateTo('home')} className="bg-[#6B0D0D] text-white px-12 py-5 rounded-2xl font-bold shadow-2xl btn-hover transition uppercase text-sm tracking-widest text-left text-left text-left text-left">Découvrir mes derniers tests</button>
+                                    <p className="font-bold text-[#004D40] text-left text-left text-left text-left text-left">Clara, experte en cadeaux (et en vérité).</p>
                                 </div>
                             </section>
                         )}
 
                         {view === 'admin' && user && user.uid === ADMIN_UID && (
-                            <div className="max-w-6xl mx-auto px-6 py-12 text-left fade-in text-left text-left text-left">
-                                <div className="flex justify-between items-center mb-12 border-b pb-8 text-left text-left text-left text-left">
-                                    <h2 className="text-3xl font-serif text-[#004D40] font-bold text-left text-left text-left">{editingId ? "Modifier le Test" : "Atelier de Rédaction"}</h2>
-                                    <button onClick={() => { handleCancelEdit(); auth.signOut(); navigateTo('home'); }} className="text-gray-400 hover:text-[#6B0D0D] flex items-center gap-2 font-bold transition text-left text-left text-left text-left"><Icon name="LogOut" size={18}/> Quitter</button>
+                            <div className="max-w-6xl mx-auto px-6 py-12 text-left fade-in text-left text-left text-left text-left">
+                                <div className="flex justify-between items-center mb-12 border-b pb-8 text-left text-left text-left text-left text-left">
+                                    <h2 className="text-3xl font-serif text-[#004D40] font-bold text-left text-left text-left text-left text-left">Atelier de Rédaction</h2>
+                                    <button onClick={() => { handleCancelEdit(); auth.signOut(); navigateTo('home'); }} className="text-gray-400 hover:text-[#6B0D0D] flex items-center gap-2 font-bold transition text-left text-left text-left text-left text-left"><Icon name="LogOut" size={18}/> Quitter</button>
                                 </div>
-                                <div className="grid lg:grid-cols-2 gap-12 items-start text-left text-left text-left">
-                                    <div className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 text-left text-left text-left text-left">
-                                        <div className="flex justify-between items-center mb-8 text-left text-left text-left text-left">
-                                            <h3 className="font-bold flex items-center gap-2 text-xl text-[#004D40] text-left text-left text-left"><Icon name={editingId ? "Edit3" : "Plus"} /> {editingId ? "Edition" : "Nouveau Test"}</h3>
-                                            {editingId && <button onClick={handleCancelEdit} className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest transition text-left text-left text-left">Annuler</button>}
+                                <div className="grid lg:grid-cols-2 gap-12 items-start text-left text-left text-left text-left">
+                                    <div className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 text-left text-left text-left text-left text-left">
+                                        <div className="flex justify-between items-center mb-8 text-left text-left text-left text-left text-left">
+                                            <h3 className="font-bold flex items-center gap-2 text-xl text-[#004D40] text-left text-left text-left text-left text-left text-left"><Icon name={editingId ? "Edit3" : "Plus"} /> {editingId ? "Edition" : "Nouveau Test"}</h3>
+                                            {editingId && <button onClick={handleCancelEdit} className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest transition text-left text-left text-left text-left">Annuler</button>}
                                         </div>
-                                        <form ref={formRef} onSubmit={handleAddOrUpdateArticle} className="space-y-6 text-left text-left text-left">
-                                            <div className="grid grid-cols-2 gap-4 text-left text-left text-left text-left text-left">
-                                                <input name="title" defaultValue={previewData.title || ''} placeholder="Nom produit" className="p-4 border rounded-xl outline-none text-left text-left text-left" required />
-                                                <select name="category" defaultValue={previewData.category || 'ACTIVEWEAR'} className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left text-left"><option>ACTIVEWEAR</option><option>LOUNGEWEAR</option><option>BEACHWEAR</option><option>GEEK</option><option>TECH</option></select>
+                                        <form ref={formRef} onSubmit={handleAddOrUpdateArticle} className="space-y-6 text-left text-left text-left text-left">
+                                            <div className="grid grid-cols-2 gap-4 text-left text-left text-left text-left text-left text-left text-left text-left">
+                                                <input name="title" defaultValue={previewData.title || ''} placeholder="Nom produit" className="p-4 border rounded-xl outline-none text-left text-left text-left text-left" required />
+                                                <select name="category" defaultValue={previewData.category || 'ACTIVEWEAR'} className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left text-left text-left"><option>ACTIVEWEAR</option><option>LOUNGEWEAR</option><option>BEACHWEAR</option><option>GEEK</option><option>TECH</option></select>
                                             </div>
-                                            <input name="excerpt" defaultValue={previewData.excerpt || ''} placeholder="Accroche SEO" className="w-full p-4 border rounded-xl outline-none text-left text-left text-left" required />
-                                            <div className="space-y-2 text-left text-left text-left text-left text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1 text-left text-left text-left text-left">Récit du test</label><div ref={quillRef} style={{height: '450px'}}></div></div>
-                                            <div className="grid grid-cols-2 gap-4 text-left text-left text-left text-left text-left">
-                                                <input name="imageUrl" defaultValue={previewData.imageUrl || ''} placeholder="URL image couverture" className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left text-left" required />
-                                                <input name="imageAlt" defaultValue={previewData.imageAlt || ''} placeholder="ALT SEO couverture" className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left text-left" />
+                                            <input name="excerpt" defaultValue={previewData.excerpt || ''} placeholder="Accroche SEO" className="w-full p-4 border rounded-xl outline-none text-left text-left text-left text-left text-left" required />
+                                            <div className="space-y-2 text-left text-left text-left text-left text-left text-left text-left text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1 text-left text-left text-left text-left text-left">Récit du test</label><div ref={quillRef} style={{height: '450px'}}></div></div>
+                                            <div className="grid grid-cols-2 gap-4 text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">
+                                                <input name="imageUrl" defaultValue={previewData.imageUrl || ''} placeholder="URL image couverture" className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left text-left text-left text-left" required />
+                                                <input name="imageAlt" defaultValue={previewData.imageAlt || ''} placeholder="ALT SEO couverture" className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left text-left text-left text-left text-left" />
                                             </div>
-                                            <div className="bg-emerald/5 p-6 rounded-2xl border border-emerald/10 space-y-4 text-left text-left text-left">
-                                                <div className="flex gap-4 text-left text-left text-left text-left">
-                                                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-emerald/40 transition text-left text-left text-left text-left">
-                                                        <input type="radio" name="affiliateType" value="AMAZON" defaultChecked={previewData.affiliateType !== 'INSTANT_GAMING'} className="accent-emerald text-left text-left" />
-                                                        <span className="text-xs font-bold uppercase text-left text-left text-left">Amazon</span>
+                                            <div className="bg-emerald/5 p-6 rounded-2xl border border-emerald/10 space-y-4 text-left text-left text-left text-left text-left text-left">
+                                                <div className="flex gap-4 text-left text-left text-left text-left text-left text-left text-left">
+                                                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-emerald/40 transition text-left text-left text-left text-left text-left">
+                                                        <input type="radio" name="affiliateType" value="AMAZON" defaultChecked={previewData.affiliateType !== 'INSTANT_GAMING'} className="accent-emerald text-left text-left text-left" />
+                                                        <span className="text-xs font-bold uppercase text-left text-left text-left text-left">Amazon</span>
                                                     </label>
-                                                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-orange-400 transition text-left text-left text-left text-left text-left">
-                                                        <input type="radio" name="affiliateType" value="INSTANT_GAMING" defaultChecked={previewData.affiliateType === 'INSTANT_GAMING'} className="accent-[#FF6600] text-left text-left" />
-                                                        <span className="text-xs font-bold uppercase text-left text-left text-left">Instant Gaming</span>
+                                                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-orange-400 transition text-left text-left text-left text-left text-left text-left">
+                                                        <input type="radio" name="affiliateType" value="INSTANT_GAMING" defaultChecked={previewData.affiliateType === 'INSTANT_GAMING'} className="accent-[#FF6600] text-left text-left text-left text-left" />
+                                                        <span className="text-xs font-bold uppercase text-left text-left text-left text-left text-left">Instant Gaming</span>
                                                     </label>
                                                 </div>
-                                                <input name="affiliateLink" defaultValue={previewData.affiliateLink || ''} placeholder="Lien d'affiliation" className="w-full p-4 border rounded-xl outline-none text-left text-left text-left" required />
+                                                <input name="affiliateLink" defaultValue={previewData.affiliateLink || ''} placeholder="Lien d'affiliation" className="w-full p-4 border rounded-xl outline-none text-left text-left text-left text-left text-left" required />
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4 pt-4 text-center text-left text-left text-left text-left">
-                                                <button type="button" onClick={handleTogglePreview} className="bg-emerald text-white py-5 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition hover:scale-[1.02] tracking-widest uppercase text-xs text-left text-left text-left text-left"><Icon name="Eye" /> Prévisualiser</button>
-                                                <button className="bg-[#6B0D0D] text-white py-5 rounded-2xl font-bold shadow-lg transition hover:scale-[1.02] tracking-widest uppercase text-xs text-left text-left text-left text-left">{editingId ? "Mettre à jour" : "Publier"}</button>
+                                            <div className="grid grid-cols-2 gap-4 pt-4 text-center text-left text-left text-left text-left text-left text-left">
+                                                <button type="button" onClick={handleTogglePreview} className="bg-emerald text-white py-5 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition hover:scale-[1.02] tracking-widest uppercase text-xs text-left text-left text-left text-left text-left text-left text-left"><Icon name="Eye" /> Prévisualiser</button>
+                                                <button className="bg-[#6B0D0D] text-white py-5 rounded-2xl font-bold shadow-lg transition hover:scale-[1.02] tracking-widest uppercase text-xs text-left text-left text-left text-left text-left text-left text-left">{editingId ? "Mettre à jour" : "Publier"}</button>
                                             </div>
                                         </form>
                                     </div>
-                                    <div className="space-y-4 text-left text-left text-left text-left">
-                                        <h3 className="font-bold mb-8 text-[#004D40] flex items-center justify-between text-left text-left text-left text-left text-left"><span>Articles en ligne</span><span className="bg-[#004D40]/10 text-[#004D40] px-3 py-1 rounded-full text-xs font-mono text-left text-left text-left">1</span></h3>
-                                        <div className="grid gap-3 max-h-[1100px] overflow-y-auto no-scrollbar pr-1 text-left text-left text-left text-left text-left text-left">
+
+                                    {/* LISTE ADMIN AMELIOREE - ZERO DEBORDEMENT */}
+                                    <div className="space-y-4 text-left text-left text-left text-left text-left">
+                                        <h3 className="font-bold mb-8 text-[#004D40] flex items-center justify-between text-left text-left text-left text-left text-left text-left text-left"><span>Articles en ligne</span><span className="bg-[#004D40]/10 text-[#004D40] px-3 py-1 rounded-full text-xs font-mono text-left text-left text-left text-left">1</span></h3>
+                                        <div className="grid gap-4 max-h-[1100px] overflow-y-auto pr-1 text-left text-left text-left text-left text-left text-left text-left text-left">
                                             {articles.map(art => (
-                                                <div key={art.id} className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm hover:border-[#004D40]/20 transition duration-300 text-left text-left text-left text-left text-left">
-                                                    <div className="flex justify-between items-center gap-4 text-left text-left text-left text-left text-left">
-                                                        <div className="flex-grow overflow-hidden text-left text-left text-left text-left text-left">
-                                                            <p className="font-bold text-sm truncate text-[#004D40] text-left text-left text-left text-left">{art.title}</p>
-                                                            <div className="flex gap-2 mt-1 text-left text-left text-left text-left">
-                                                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider text-left text-left text-left">{art.category}</span>
-                                                                <span className={`text-[9px] font-black uppercase tracking-tighter text-left text-left text-left ${art.affiliateType === 'INSTANT_GAMING' ? 'text-orange-500' : 'text-blue-500'}`}>
-                                                                    {art.affiliateType || 'AMAZON'}
-                                                                </span>
-                                                            </div>
+                                                <div key={art.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm transition duration-300 text-left text-left text-left text-left text-left text-left text-left text-left">
+                                                    <div className="mb-6 text-left text-left text-left text-left text-left text-left">
+                                                        <p className="font-bold text-base text-[#004D40] text-left text-left text-left text-left text-left text-left">{art.title}</p>
+                                                        <div className="flex gap-3 mt-2 text-left text-left text-left text-left text-left">
+                                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider text-left text-left text-left text-left">{art.category}</span>
+                                                            <span className={`text-[10px] font-black uppercase tracking-tighter text-left text-left text-left text-left ${art.affiliateType === 'INSTANT_GAMING' ? 'text-orange-500' : 'text-blue-500'}`}>
+                                                                {art.affiliateType || 'AMAZON'}
+                                                            </span>
                                                         </div>
-                                                        <div className="flex flex-col gap-2 shrink-0 text-left text-left text-left text-left text-left">
-                                                            <button onClick={() => handleEditClick(art)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg shadow-md border border-emerald-700 flex items-center justify-center gap-1.5 transition-all text-left text-left text-left text-left" title="Modifier">
-                                                                <Icon name="Edit3" size={14} /> <span className="text-[9px] font-bold uppercase text-left text-left text-left">Editer</span>
-                                                            </button>
-                                                            <button onClick={() => setDeletingId(art.id)} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg shadow-md border border-red-800 flex items-center justify-center gap-1.5 transition-all text-left text-left text-left text-left" title="Supprimer">
-                                                                <Icon name="Trash2" size={14} /> <span className="text-[9px] font-bold uppercase text-left text-left text-left">Suppr.</span>
-                                                            </button>
-                                                        </div>
+                                                    </div>
+                                                    {/* BOUTONS ACTIONS LARGES ET TOUJOURS VISIBLES */}
+                                                    <div className="flex gap-4 text-left text-left text-left text-left text-left text-left text-left">
+                                                        <button onClick={() => handleEditClick(art)} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl shadow-md border border-emerald-700 flex items-center justify-center gap-2 transition-all text-left text-left text-left text-left text-left text-left" title="Modifier">
+                                                            <Icon name="Edit3" size={18} /> <span className="text-xs font-bold uppercase text-left text-left text-left text-left text-left">Modifier</span>
+                                                        </button>
+                                                        <button onClick={() => setDeletingId(art.id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl shadow-md border border-red-800 flex items-center justify-center gap-2 transition-all text-left text-left text-left text-left text-left text-left text-left" title="Supprimer">
+                                                            <Icon name="Trash2" size={18} /> <span className="text-xs font-bold uppercase text-left text-left text-left text-left text-left text-left text-left">Supprimer</span>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -568,39 +548,27 @@
                                 </div>
                             </div>
                         )}
-
-                        {isPreview && (
-                            <div className="fixed inset-0 z-[150] bg-[#FDF5E6] overflow-y-auto pt-24 fade-in text-left text-left text-left text-left text-left">
-                                <div className="max-w-4xl mx-auto px-6 mb-12 text-left text-left text-left text-left text-left">
-                                    <div className="flex justify-between items-center bg-emerald text-white p-6 rounded-2xl shadow-2xl sticky top-4 z-[160] text-left text-left text-left text-left text-left">
-                                        <div className="flex items-center gap-3 text-left text-left text-left text-left text-left"><Icon name="Eye" /><p className="font-bold text-left text-left text-left text-left text-left text-left">Prévisualisation</p></div>
-                                        <div className="flex gap-4 text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left"><button onClick={handleTogglePreview} className="bg-white/10 px-6 py-3 rounded-xl font-bold transition hover:bg-white/20 text-left text-left text-left text-left">Retour à l'édition</button><button onClick={handleAddOrUpdateArticle} className="bg-white text-emerald px-8 py-3 rounded-xl font-bold shadow-xl transition hover:scale-105 text-left text-left text-left text-left text-left text-left text-left text-left text-left">{editingId ? "Sauvegarder" : "Publier l'article"}</button></div>
-                                    </div>
-                                </div>
-                                <div className="bg-white rounded-t-[3rem] shadow-sm border-t overflow-hidden text-left text-left text-left text-left text-left text-left text-left"><ArticleLayout article={previewData} onBack={handleTogglePreview} /></div>
-                            </div>
-                        )}
                     </main>
 
-                    <footer className="bg-[#1A1A1A] text-white py-20 px-6 border-t border-white/5 text-left mt-auto text-left text-left text-left text-left">
-                        <div className="container mx-auto grid md:grid-cols-3 gap-16 text-left text-left text-left text-left text-left text-left text-left">
-                            <div className="text-left text-left text-left text-left text-left text-left text-left">
-                                <div className="text-3xl font-serif font-bold mb-8 cursor-default select-none text-white text-left text-left text-left text-left text-left">LeCh<span onClick={handleAdminTrigger} className="cursor-default hover:text-[#6B0D0D] transition-colors duration-200 text-left text-left text-left text-left text-left">o</span>ixDeClara</div>
-                                <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs text-left text-left text-left text-left text-left text-left">"Moi c'est Clara. Je teste ce qu'elle veut vraiment recevoir pour que tu ne puisses plus te rater."</p>
+                    <footer className="bg-[#1A1A1A] text-white py-20 px-6 border-t border-white/5 text-left mt-auto text-left text-left text-left text-left text-left">
+                        <div className="container mx-auto grid md:grid-cols-3 gap-16 text-left text-left text-left text-left text-left text-left text-left text-left text-left">
+                            <div className="text-left text-left text-left text-left text-left text-left text-left text-left">
+                                <div className="text-3xl font-serif font-bold mb-8 cursor-default select-none text-white text-left text-left text-left text-left text-left text-left text-left">LeCh<span onClick={handleAdminTrigger} className="cursor-default hover:text-[#6B0D0D] transition-colors duration-200 text-left text-left text-left text-left text-left text-left text-left">o</span>ixDeClara</div>
+                                <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs text-left text-left text-left text-left text-left text-left text-left">"Moi c'est Clara. Je teste ce qu'elle veut vraiment recevoir pour que tu ne puisses plus te rater."</p>
                             </div>
-                            <div className="text-gray-500 text-[10px] space-y-4 uppercase tracking-widest font-bold text-left text-left text-left text-left text-left text-left text-left">
-                                <div onClick={() => navigateTo('home')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left">Accueil</div>
-                                <div onClick={() => navigateTo('about')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left">Qui est Clara ?</div>
-                                <div className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left text-left">Confidentialité</div>
-                                <div className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left text-left">Affiliation</div>
+                            <div className="text-gray-500 text-[10px] space-y-4 uppercase tracking-widest font-bold text-left text-left text-left text-left text-left text-left text-left text-left">
+                                <div onClick={() => navigateTo('home')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left text-left text-left">Accueil</div>
+                                <div onClick={() => navigateTo('about')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left text-left text-left text-left">Qui est Clara ?</div>
+                                <div className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left text-left text-left text-left">Confidentialité</div>
+                                <div className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">Affiliation</div>
                             </div>
-                            <div className="text-gray-400 text-sm text-left text-left text-left text-left text-left text-left text-left">
-                                <p className="font-bold text-white mb-4 uppercase tracking-widest text-[10px] text-left text-left text-left text-left text-left text-left text-left">Contact</p>
-                                <p className="italic text-gray-500 mb-8 text-xs text-left text-left text-left text-left text-left text-left text-left">nova.iris.kael@gmail.com</p>
-                                <p className="text-gray-600 text-[10px] mt-4 font-mono text-left text-left text-left text-left text-left text-left text-left text-left text-left">Je t'aide à trouver LE cadeau pour ta chérie.</p>
+                            <div className="text-gray-400 text-sm text-left text-left text-left text-left text-left text-left text-left text-left text-left">
+                                <p className="font-bold text-white mb-4 uppercase tracking-widest text-[10px] text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">Contact</p>
+                                <p className="italic text-gray-500 mb-8 text-xs text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">nova.iris.kael@gmail.com</p>
+                                <p className="text-gray-600 text-[10px] mt-4 font-mono text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">Je t'aide à trouver LE cadeau pour ta chérie.</p>
                             </div>
                         </div>
-                        <div className="container mx-auto mt-20 pt-8 border-t border-white/5 text-[10px] text-gray-700 font-mono text-center text-left text-left text-left">© 2026 LECHOIXDECLARA.FR</div>
+                        <div className="container mx-auto mt-20 pt-8 border-t border-white/5 text-[10px] text-gray-700 font-mono text-center text-left text-left text-left text-left text-left text-left text-left text-left">© 2026 LECHOIXDECLARA.FR</div>
                     </footer>
                 </div>
             );
