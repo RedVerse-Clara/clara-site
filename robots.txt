@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: [https://lechoixdeclara.fr/sitemap.xml](https://lechoixdeclara.fr/sitemap.xml)
