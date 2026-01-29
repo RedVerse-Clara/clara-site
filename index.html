@@ -11,29 +11,15 @@
     <meta property="og:image" content="clara-experte-avis-activewear-lechoixdeclara.webp">
     <meta property="og:type" content="website">
 
-    <!-- JSON-LD de base pour Google -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Le Choix de Clara",
-      "url": "https://lechoixdeclara.fr/",
-      "description": "Tests et avis sur les cadeaux pour femmes par Clara, influenceuse IA."
-    }
-    </script>
-
-    <!-- Scripts et Bibliothèques via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@0.263.1"></script>
     
-    <!-- Quill Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -58,7 +44,7 @@
         
         .html-content h1, .html-content h2, .html-content h3 { font-family: 'Merriweather', serif; color: #004D40; margin-top: 2rem; margin-bottom: 1rem; font-weight: bold; }
         .html-content p { margin-bottom: 1rem; line-height: 1.8; color: #374151; }
-        .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 4px solid white; }
+        .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 8px solid white; }
         .html-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -145,6 +131,11 @@
             const [previewData, setPreviewData] = useState({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" });
             const [editingId, setEditingId] = useState(null);
             
+            // États pour le modal d'image personnalisé
+            const [showImageModal, setShowImageModal] = useState(false);
+            const [modalImageUrl, setModalImageUrl] = useState("");
+            const [modalImageAlt, setModalImageAlt] = useState("");
+            
             const [email, setEmail] = useState("");
             const [password, setPassword] = useState("");
             const [authError, setAuthError] = useState("");
@@ -172,7 +163,6 @@
                 return () => unsubscribe();
             }, [user]);
 
-            // Initialisation améliorée de Quill avec gestion images personnalisée
             useEffect(() => {
                 if (view === 'admin' && !isPreview && quillRef.current) {
                     quillInstance.current = new Quill(quillRef.current, {
@@ -182,18 +172,8 @@
                                 container: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'blockquote'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link', 'image', 'clean']],
                                 handlers: {
                                     image: () => {
-                                        const url = prompt("URL de l'image (ex: photo1.webp) :");
-                                        if (url) {
-                                            const altText = prompt("Description SEO (ALT) de l'image :");
-                                            const range = quillInstance.current.getSelection();
-                                            quillInstance.current.insertEmbed(range.index, 'image', url);
-                                            // On attend que l'image soit insérée pour lui forcer son tag ALT
-                                            setTimeout(() => {
-                                                const imgs = quillInstance.current.root.querySelectorAll('img');
-                                                const lastImg = imgs[imgs.length - 1];
-                                                if (lastImg) lastImg.setAttribute('alt', altText || "");
-                                            }, 100);
-                                        }
+                                        // On ouvre notre modal personnalisé au lieu du prompt
+                                        setShowImageModal(true);
                                     }
                                 }
                             }
@@ -203,6 +183,27 @@
                 }
                 return () => { quillInstance.current = null; };
             }, [view, isPreview]);
+
+            const submitImageToQuill = () => {
+                if (modalImageUrl && quillInstance.current) {
+                    const range = quillInstance.current.getSelection();
+                    const index = range ? range.index : quillInstance.current.getLength();
+                    quillInstance.current.insertEmbed(index, 'image', modalImageUrl);
+                    
+                    // On injecte l'alt SEO
+                    setTimeout(() => {
+                        const imgs = quillInstance.current.root.querySelectorAll('img');
+                        // On cherche l'image qui a la source qu'on vient de mettre (souvent la dernière ou celle à l'index)
+                        const targetImg = Array.from(imgs).find(img => img.getAttribute('src') === modalImageUrl);
+                        if (targetImg) targetImg.setAttribute('alt', modalImageAlt || "");
+                    }, 100);
+
+                    // Reset et fermeture
+                    setModalImageUrl("");
+                    setModalImageAlt("");
+                    setShowImageModal(false);
+                }
+            };
 
             const handleAdminTrigger = (e) => {
                 e.stopPropagation();
@@ -242,7 +243,6 @@
                 setEditingId(art.id);
                 setPreviewData({ ...art });
                 window.scrollTo(0, 0);
-                // Si Quill est déjà chargé, on met à jour son contenu
                 if (quillInstance.current) quillInstance.current.root.innerHTML = art.content;
             };
 
@@ -294,6 +294,31 @@
                             {user && user.uid === ADMIN_UID && view !== 'admin' && <button onClick={() => setView('admin')} className="bg-[#004D40] text-white px-4 py-2 rounded-full text-[10px] font-bold flex items-center gap-2 btn-hover"><Icon name="Settings" size={14} /> Dashboard</button>}
                         </div>
                     </nav>
+
+                    {/* MODAL IMAGE PERSISTANT */}
+                    {showImageModal && (
+                        <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-6 backdrop-blur-sm">
+                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in">
+                                <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3">
+                                    <Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO
+                                </h3>
+                                <div className="space-y-5">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL du fichier (ex: clara.webp)</label>
+                                        <input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Description SEO (Tag ALT)</label>
+                                        <input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte l'ensemble vert..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20" />
+                                    </div>
+                                    <div className="flex gap-4 pt-4">
+                                        <button onClick={() => setShowImageModal(false)} className="flex-1 py-4 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition">Annuler</button>
+                                        <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold hover:scale-[1.02] transition">Insérer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {showLoginModal && (
                         <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-6 backdrop-blur-sm fade-in">
@@ -392,7 +417,7 @@
                                                     {editingId ? "Edition" : "Nouveau Test"}
                                                 </h3>
                                                 {editingId && (
-                                                    <button onClick={handleCancelEdit} className="text-xs text-gray-400 font-bold hover:text-red-500 uppercase tracking-widest">Annuler</button>
+                                                    <button onClick={handleCancelEdit} className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest">Annuler</button>
                                                 )}
                                             </div>
                                             <form ref={formRef} onSubmit={handleAddOrUpdateArticle} data-netlify="false" className="space-y-6 text-left">
@@ -422,16 +447,16 @@
                                             <h3 className="font-bold mb-8 text-[#004D40]">Articles en ligne ({articles.length})</h3>
                                             <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar text-left">
                                                 {articles.map(art => (
-                                                    <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-100 shadow-sm hover:border-emerald/20 transition">
+                                                    <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-300 shadow-sm hover:border-emerald/40 transition">
                                                         <div className="text-left overflow-hidden mr-4">
                                                             <p className="font-bold text-sm truncate text-[#004D40]">{art.title}</p>
                                                             <p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1">{art.category}</p>
                                                         </div>
                                                         <div className="flex gap-2">
-                                                            <button onClick={() => handleEditClick(art)} className="text-gray-400 hover:text-emerald p-3 transition-colors bg-gray-50 rounded-xl" title="Modifier">
+                                                            <button onClick={() => handleEditClick(art)} className="text-gray-600 hover:text-emerald p-3 transition-colors bg-gray-50 rounded-xl" title="Modifier">
                                                                 <Icon name="Edit3" size={18} />
                                                             </button>
-                                                            <button onClick={() => setDeletingId(art.id)} className="text-gray-400 hover:text-red-500 p-3 transition-colors bg-gray-50 rounded-xl" title="Supprimer">
+                                                            <button onClick={() => setDeletingId(art.id)} className="text-gray-600 hover:text-red-500 p-3 transition-colors bg-gray-50 rounded-xl" title="Supprimer">
                                                                 <Icon name="Trash2" size={18} />
                                                             </button>
                                                         </div>
@@ -467,8 +492,8 @@
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
     </script>
 </body>
 </html>
