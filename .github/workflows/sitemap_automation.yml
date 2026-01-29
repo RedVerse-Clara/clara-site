@@ -4,7 +4,10 @@ on:
   schedule:
     # S'exécute tous les lundis à 00:00 (heure UTC)
     - cron: '0 0 * * 1'
-  workflow_dispatch: # Permet de le lancer manuellement si besoin
+  workflow_dispatch: # Permet de le lancer manuellement
+
+permissions:
+  contents: write # CRUCIAL : Autorise le robot à écrire dans le dépôt
 
 jobs:
   build:
