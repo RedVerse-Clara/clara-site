@@ -44,7 +44,7 @@
         
         .html-content h1, .html-content h2, .html-content h3 { font-family: 'Merriweather', serif; color: #004D40; margin-top: 2rem; margin-bottom: 1rem; font-weight: bold; }
         .html-content p { margin-bottom: 1rem; line-height: 1.8; color: #374151; }
-        .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 8px solid white; }
+        .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 4px solid white; }
         .html-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -131,10 +131,11 @@
             const [previewData, setPreviewData] = useState({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "" });
             const [editingId, setEditingId] = useState(null);
             
-            // États pour le modal d'image personnalisé (Persistant)
+            // États pour le modal d'image personnalisé
             const [showImageModal, setShowImageModal] = useState(false);
             const [modalImageUrl, setModalImageUrl] = useState("");
             const [modalImageAlt, setModalImageAlt] = useState("");
+            const [savedRange, setSavedRange] = useState(null);
             
             const [email, setEmail] = useState("");
             const [password, setPassword] = useState("");
@@ -171,8 +172,9 @@
                             toolbar: {
                                 container: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'blockquote'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link', 'image', 'clean']],
                                 handlers: {
-                                    image: () => {
-                                        // On ouvre notre modal personnalisé persistant
+                                    image: function() {
+                                        // On sauvegarde l'emplacement du curseur AVANT d'ouvrir le modal
+                                        setSavedRange(this.quill.getSelection());
                                         setShowImageModal(true);
                                     }
                                 }
@@ -186,21 +188,30 @@
 
             const submitImageToQuill = () => {
                 if (modalImageUrl && quillInstance.current) {
-                    const range = quillInstance.current.getSelection();
-                    const index = range ? range.index : quillInstance.current.getLength();
-                    quillInstance.current.insertEmbed(index, 'image', modalImageUrl);
+                    const quill = quillInstance.current;
+                    // Utiliser le range sauvegardé ou la fin du doc
+                    const range = savedRange || { index: quill.getLength() };
                     
-                    // On injecte l'alt SEO dans le DOM de l'éditeur
+                    quill.insertEmbed(range.index, 'image', modalImageUrl);
+                    
+                    // Injection immédiate du ALT dans le DOM
                     setTimeout(() => {
-                        const imgs = quillInstance.current.root.querySelectorAll('img');
+                        const imgs = quill.root.querySelectorAll('img');
                         const targetImg = Array.from(imgs).find(img => img.getAttribute('src') === modalImageUrl);
-                        if (targetImg) targetImg.setAttribute('alt', modalImageAlt || "");
-                    }, 100);
+                        if (targetImg) {
+                            targetImg.setAttribute('alt', modalImageAlt || "");
+                            targetImg.setAttribute('title', modalImageAlt || ""); // Pour le hover
+                        }
+                    }, 50);
+
+                    // Placer le curseur après l'image
+                    quill.setSelection(range.index + 1);
 
                     // Reset et fermeture
                     setModalImageUrl("");
                     setModalImageAlt("");
                     setShowImageModal(false);
+                    setSavedRange(null);
                 }
             };
 
@@ -297,14 +308,14 @@
                     {/* MODAL IMAGE PERSISTANT - VERROUILLÉ */}
                     {showImageModal && (
                         <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md">
-                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in">
+                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in scale-in">
                                 <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3">
                                     <Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO
                                 </h3>
                                 <div className="space-y-5">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">URL du fichier (ex: photo1.webp)</label>
-                                        <input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" />
+                                        <input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50" autoFocus />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Description SEO (Tag ALT)</label>
@@ -315,7 +326,7 @@
                                         <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold hover:scale-[1.02] transition shadow-lg">Insérer dans l'article</button>
                                     </div>
                                 </div>
-                                <p className="text-[9px] text-gray-400 mt-6 text-center uppercase tracking-widest">Fenêtre persistante - Veuillez valider ou annuler</p>
+                                <p className="text-[9px] text-gray-400 mt-6 text-center uppercase tracking-widest italic">Veuillez valider pour insérer l'image.</p>
                             </div>
                         </div>
                     )}
@@ -447,16 +458,17 @@
                                             <h3 className="font-bold mb-8 text-[#004D40]">Articles en ligne ({articles.length})</h3>
                                             <div className="grid gap-4 max-h-[1100px] overflow-y-auto no-scrollbar text-left">
                                                 {articles.map(art => (
-                                                    <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-300 shadow-sm hover:border-emerald/40 transition">
+                                                    <div key={art.id} className="bg-white p-6 rounded-2xl flex justify-between items-center border border-gray-200 shadow-sm hover:border-emerald/40 transition">
                                                         <div className="text-left overflow-hidden mr-4">
                                                             <p className="font-bold text-sm truncate text-[#004D40]">{art.title}</p>
                                                             <p className="text-[10px] text-[#6B0D0D] font-bold uppercase mt-1">{art.category}</p>
                                                         </div>
                                                         <div className="flex gap-2">
-                                                            <button onClick={() => handleEditClick(art)} className="text-emerald-700 hover:bg-emerald-50 p-3 transition-colors bg-gray-50 rounded-xl" title="Modifier">
+                                                            {/* BOUTONS ACTIONS VISIBLES */}
+                                                            <button onClick={() => handleEditClick(art)} className="text-emerald-800 bg-emerald-50 hover:bg-emerald-100 p-3 transition-colors rounded-xl border border-emerald-100" title="Modifier">
                                                                 <Icon name="Edit3" size={18} />
                                                             </button>
-                                                            <button onClick={() => setDeletingId(art.id)} className="text-red-700 hover:bg-red-50 p-3 transition-colors bg-gray-50 rounded-xl" title="Supprimer">
+                                                            <button onClick={() => setDeletingId(art.id)} className="text-red-700 bg-red-50 hover:bg-red-100 p-3 transition-colors rounded-xl border border-red-100" title="Supprimer">
                                                                 <Icon name="Trash2" size={18} />
                                                             </button>
                                                         </div>
