@@ -1,0 +1,35 @@
+name: Update Sitemap Weekly
+
+on:
+  schedule:
+    # S'exécute tous les lundis à 00:00 (heure UTC)
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # Permet de le lancer manuellement
+
+permissions:
+  contents: write # CRUCIAL : Autorise le robot à écrire dans le dépôt
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Generate sitemap
+        run: python generate_sitemap.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name 'Sitemap Bot'
+          git config --global user.email 'bot@lechoixdeclara.fr'
+          git add sitemap.xml
+          git diff --quiet && git diff --staged --quiet || (git commit -m "auto: update sitemap.xml" && git push)

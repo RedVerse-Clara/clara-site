@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="meta-title">LeChoixDeClara.fr | L'arme secrète pour ses cadeaux</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <meta name="description" id="meta-desc" content="Clara, 28 ans, 1m78. Silhouette athlétique. Je guide les hommes attentionnés dans leur choix de cadeaux pour leur chérie avec des tests sans concession.">
+    <meta property="og:title" content="LeChoixDeClara.fr - Experte en cadeaux femme">
+    <meta property="og:description" content="Découvrez les tests de Clara pour choisir le cadeau parfait.">
+    <meta property="og:image" content="clara-experte-avis-activewear-lechoixdeclara.webp">
+    <meta property="og:type" content="website">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.263.1"></script>
+    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,700;1,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- SUIVI UMAMI CLOUD -->
+    <script src="https://cloud.umami.is/script.js" data-website-id="358764be-f3ef-4b82-8529-f41d2fb96175"></script>
+
+    <style>
+        body { font-family: 'DM Sans', sans-serif; background-color: #FDF5E6; color: #1A1A1A; margin: 0; scroll-behavior: smooth; text-align: left; }
+        .font-serif { font-family: 'Merriweather', serif; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .ql-container { font-family: 'DM Sans', sans-serif; font-size: 16px; border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; background: white; }
+        .ql-toolbar { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; background: #f9fafb; }
+        .ql-editor { min-height: 400px; text-align: left; }
+        
+        .html-content h1, .html-content h2, .html-content h3 { font-family: 'Merriweather', serif; color: #004D40; margin-top: 2rem; margin-bottom: 1rem; font-weight: bold; text-align: left; }
+        .html-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; text-align: left; }
+        .html-content img { width: 100%; border-radius: 1.5rem; margin: 2rem 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 4px solid white; }
+        .html-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .btn-hover { transition: all 0.3s ease; }
+        .btn-hover:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        
+        .nav-link { font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em; transition: all 0.3s; position: relative; color: #4B5563; }
+        .nav-link:hover { color: #6B0D0D; }
+        .nav-link::after { content: ''; position: absolute; bottom: -6px; left: 0; width: 0; height: 2px; background: #6B0D0D; transition: width 0.3s; }
+        .nav-link.active { color: #004D40; }
+        .nav-link.active::after { width: 100%; background: #004D40; }
+
+        .scale-in { animation: scaleIn 0.2s ease-out forwards; }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = window.React;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsir6uo65xG4IsfQgHhvbBuEC_srM8Ozo",
+            authDomain: "le-choix-de-clara.firebaseapp.com",
+            projectId: "le-choix-de-clara",
+            storageBucket: "le-choix-de-clara.firebasestorage.app",
+            messagingSenderId: "573771946630",
+            appId: "1:573771946630:web:8c24d0a0a5c2f706de8f07"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const CLARA_APP_ID = 'le-choix-de-clara';
+        const ADMIN_UID = "UN8togQLU6Xl2yNcU3ses2rHDjt2"; 
+
+        const UMAMI_SHARE_URL = "https://cloud.umami.is/share/358764be-f3ef-4b82-8529-f41d2fb96175/lechoixdeclara.fr";
+
+        const Icon = ({ name, size = 20, className = "" }) => {
+            const [iconSvg, setIconSvg] = useState("");
+            useEffect(() => {
+                if (window.lucide && window.lucide.icons && window.lucide.icons[name]) {
+                    setIconSvg(window.lucide.icons[name].toSvg({ size, class: className }));
+                }
+            }, [name, size, className]);
+            if (!iconSvg) return <span className="inline-block" style={{width: size, height: size}}></span>;
+            return <span className="inline-flex items-center justify-center" dangerouslySetInnerHTML={{ __html: iconSvg }} />;
+        };
+
+        const ArticleLayout = ({ article, onBack, allArticles, onNavigate }) => {
+            useEffect(() => {
+                const oldTitle = document.title;
+                const oldDesc = document.querySelector('meta[name="description"]').content;
+                document.title = `${article.title} | Avis de Clara`;
+                document.querySelector('meta[name="description"]').content = article.excerpt;
+                return () => {
+                    document.title = oldTitle;
+                    document.querySelector('meta[name="description"]').content = oldDesc;
+                };
+            }, [article]);
+
+            const isInstantGaming = article.affiliateType === 'INSTANT_GAMING';
+            const relatedArticles = allArticles
+                .filter(a => a.category === article.category && a.id !== article.id)
+                .slice(0, 3);
+
+            const AffiliateButton = ({ className = "" }) => (
+                <a 
+                    href={article.affiliateLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className={`${isInstantGaming ? 'bg-[#FF6600]' : 'bg-[#6B0D0D]'} text-white px-8 py-4 rounded-xl font-bold inline-block shadow-lg btn-hover hover:scale-105 transition text-sm tracking-wide text-center ${className}`}
+                >
+                    {isInstantGaming ? 'Vérifier la promo sur Instant Gaming' : 'Vérifier le prix sur Amazon'}
+                </a>
+            );
+
+            return (
+                <div className="max-w-4xl mx-auto px-6 py-12 text-left fade-in">
+                    <button onClick={onBack} className="text-[#004D40] font-bold mb-10 flex items-center gap-2 hover:text-[#6B0D0D] transition uppercase text-xs tracking-widest">
+                        <Icon name="ChevronLeft" size={20} /> Retour
+                    </button>
+                    
+                    <article>
+                        <header className="text-left">
+                            <span className="text-[#6B0D0D] font-bold uppercase tracking-widest text-[10px] mb-4 block">{article.category}</span>
+                            <h1 className="text-4xl md:text-6xl font-serif mb-8 text-[#004D40] leading-tight text-left">{article.title}</h1>
+                            <p className="text-xl italic border-l-4 border-[#6B0D0D] pl-6 mb-8 bg-white py-8 rounded-r-2xl shadow-sm text-left text-gray-700">"{article.excerpt}"</p>
+                            
+                            {/* BOUTON HAUT DE FICHE */}
+                            <div className="mb-10">
+                                <AffiliateButton />
+                            </div>
+                        </header>
+
+                        {article.imageUrl && (
+                            <img 
+                                src={article.imageUrl} 
+                                alt={article.imageAlt || article.title} 
+                                className="w-full rounded-3xl mb-12 shadow-2xl border-8 border-white" 
+                            />
+                        )}
+
+                        <div className="html-content text-lg text-left" dangerouslySetInnerHTML={{ __html: article.content || "" }} />
+                        
+                        <footer className="bg-white p-12 rounded-3xl shadow-xl text-center border border-gray-50 my-20">
+                            <p className="mb-6 font-bold text-gray-400 uppercase tracking-widest text-[10px] tracking-tighter">Sélection officielle Clara • Partenaire {isInstantGaming ? 'Instant Gaming' : 'Amazon'}</p>
+                            {/* BOUTON BAS DE FICHE */}
+                            <AffiliateButton className="px-12 py-6 text-lg" />
+                        </footer>
+                    </article>
+
+                    {/* BLOC ARTICLES SIMILAIRES (OPTION A) */}
+                    {relatedArticles.length > 0 && (
+                        <section className="mt-20 pt-20 border-t border-[#004D40]/10">
+                            <h3 className="font-serif text-3xl text-[#004D40] mb-10">D'autres pépites {article.category.toLowerCase()} ?</h3>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                {relatedArticles.map(rel => (
+                                    <div 
+                                        key={rel.id} 
+                                        onClick={() => onNavigate('article', rel)}
+                                        className="group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition border border-gray-100"
+                                    >
+                                        <div className="aspect-square bg-gray-100 overflow-hidden">
+                                            <img src={rel.imageUrl} alt={rel.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                                        </div>
+                                        <div className="p-4">
+                                            <h4 className="font-bold text-sm text-[#004D40] line-clamp-1 mb-2">{rel.title}</h4>
+                                            <div className="flex items-center justify-between text-[#6B0D0D] font-bold text-[10px] uppercase">
+                                                <span>Voir le test</span>
+                                                <Icon name="ChevronRight" size={14} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </div>
+            );
+        };
+
+        function App() {
+            const [view, setView] = useState('home'); 
+            const [categoryFilter, setCategoryFilter] = useState('ALL');
+            const [articles, setArticles] = useState([]);
+            const [selectedArticle, setSelectedArticle] = useState(null);
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [showLoginModal, setShowLoginModal] = useState(false);
+            const [showStatsModal, setShowStatsModal] = useState(false);
+            const [deletingId, setDeletingId] = useState(null);
+            const [secretClicks, setSecretClicks] = useState(0);
+            
+            const [isPreview, setIsPreview] = useState(false);
+            const [previewData, setPreviewData] = useState({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "", affiliateType: "AMAZON" });
+            const [editingId, setEditingId] = useState(null);
+            
+            const [showImageModal, setShowImageModal] = useState(false);
+            const [modalImageUrl, setModalImageUrl] = useState("");
+            const [modalImageAlt, setModalImageAlt] = useState("");
+            const [savedRange, setSavedRange] = useState(null);
+            
+            const [email, setEmail] = useState("");
+            const [password, setPassword] = useState("");
+            const [authError, setAuthError] = useState("");
+            
+            const quillRef = useRef(null);
+            const quillInstance = useRef(null);
+            const formRef = useRef(null);
+
+            useEffect(() => {
+                const handlePopState = (event) => {
+                    const params = new URLSearchParams(window.location.search);
+                    const artId = params.get('a');
+                    const page = params.get('p');
+                    if (artId && articles.length > 0) {
+                        const art = articles.find(a => a.id === artId);
+                        if (art) { setView('article'); setSelectedArticle(art); return; }
+                    }
+                    if (page === 'about') { setView('about'); return; }
+                    if (page === 'privacy') { setView('privacy'); return; }
+                    if (page === 'affiliation') { setView('affiliation'); return; }
+                    if (page === 'legal') { setView('legal'); return; }
+                    setView('home'); setCategoryFilter('ALL'); setSelectedArticle(null);
+                };
+                window.addEventListener('popstate', handlePopState);
+                return () => window.removeEventListener('popstate', handlePopState);
+            }, [articles]);
+
+            const navigateTo = (newView, article = null, filter = 'ALL') => {
+                setView(newView);
+                setSelectedArticle(article);
+                setCategoryFilter(filter);
+                let newUrl = window.location.pathname;
+                if (newView === 'article' && article) newUrl += `?a=${article.id}`;
+                else if (newView === 'about') newUrl += `?p=about`;
+                else if (newView === 'privacy') newUrl += `?p=privacy`;
+                else if (newView === 'affiliation') newUrl += `?p=affiliation`;
+                else if (newView === 'legal') newUrl += `?p=legal`;
+                else if (newView === 'admin') newUrl += `?p=admin`;
+                window.history.pushState({ view: newView, article, filter }, "", newUrl);
+                window.scrollTo(0, 0);
+            };
+
+            useEffect(() => {
+                const unsubscribe = auth.onAuthStateChanged((u) => {
+                    setUser(u);
+                    setLoading(false);
+                    if (!u) auth.signInAnonymously().catch(console.error);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            useEffect(() => {
+                if (!user) return;
+                const unsub = db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles')
+                    .onSnapshot((snapshot) => {
+                        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        const sorted = docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                        setArticles(sorted);
+                        const params = new URLSearchParams(window.location.search);
+                        const artId = params.get('a');
+                        const page = params.get('p');
+                        if (artId) {
+                            const art = sorted.find(a => a.id === artId);
+                            if (art) { setView('article'); setSelectedArticle(art); }
+                        } else if (page === 'about') { setView('about'); }
+                        else if (page === 'privacy') { setView('privacy'); }
+                        else if (page === 'affiliation') { setView('affiliation'); }
+                        else if (page === 'legal') { setView('legal'); }
+                        else if (page === 'admin') { setView('admin'); }
+                    }, (err) => console.error("Firestore error:", err));
+                return () => unsub();
+            }, [user]);
+
+            useEffect(() => {
+                if (view === 'admin' && !isPreview && quillRef.current) {
+                    quillInstance.current = new Quill(quillRef.current, {
+                        theme: 'snow', placeholder: 'Racontez votre expérience produit ici...',
+                        modules: { 
+                            toolbar: {
+                                container: [[{ 'header': [1, 2, false] }], ['bold', 'italic', 'underline', 'blockquote'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link', 'image', 'clean']],
+                                handlers: {
+                                    image: function() {
+                                        setSavedRange(this.quill.getSelection(true));
+                                        setShowImageModal(true);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    if (previewData.content) quillInstance.current.root.innerHTML = previewData.content;
+                }
+                return () => { quillInstance.current = null; };
+            }, [view, isPreview]);
+
+            const submitImageToQuill = () => {
+                if (modalImageUrl && quillInstance.current) {
+                    const quill = quillInstance.current;
+                    const index = savedRange ? savedRange.index : quill.getLength();
+                    quill.insertEmbed(index, 'image', modalImageUrl);
+                    setTimeout(() => {
+                        const imgs = quill.root.querySelectorAll('img');
+                        const targetImg = Array.from(imgs).find(img => img.getAttribute('src') === modalImageUrl);
+                        if (targetImg) targetImg.setAttribute('alt', modalImageAlt || "");
+                        quill.focus();
+                        quill.setSelection(index + 1);
+                    }, 50);
+                    setModalImageUrl(""); setModalImageAlt(""); setShowImageModal(false); setSavedRange(null);
+                }
+            };
+
+            const handleAdminTrigger = (e) => {
+                e.stopPropagation();
+                const n = secretClicks + 1;
+                setSecretClicks(n);
+                if (n >= 3) { 
+                    if (user && user.uid === ADMIN_UID) navigateTo('admin');
+                    else setShowLoginModal(true);
+                    setSecretClicks(0);
+                }
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                setAuthError("");
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => { setShowLoginModal(false); navigateTo('admin'); })
+                    .catch(() => setAuthError("Accès refusé."));
+            };
+
+            const handleTogglePreview = () => {
+                if (!isPreview) {
+                    const fd = new FormData(formRef.current);
+                    setPreviewData({
+                        title: fd.get('title'),
+                        category: fd.get('category'),
+                        excerpt: fd.get('excerpt'),
+                        content: quillInstance.current ? quillInstance.current.root.innerHTML : "",
+                        imageUrl: fd.get('imageUrl'),
+                        imageAlt: fd.get('imageAlt'),
+                        affiliateLink: fd.get('affiliateLink'),
+                        affiliateType: fd.get('affiliateType')
+                    });
+                    setIsPreview(true);
+                    window.scrollTo(0, 0);
+                } else {
+                    setIsPreview(false);
+                }
+            };
+
+            const handleEditClick = (art) => {
+                setEditingId(art.id);
+                setPreviewData({ ...art });
+                navigateTo('admin');
+                if (quillInstance.current) quillInstance.current.root.innerHTML = art.content;
+            };
+
+            const handleCancelEdit = () => {
+                setEditingId(null);
+                setPreviewData({ title: "", category: "ACTIVEWEAR", excerpt: "", content: "", imageUrl: "", imageAlt: "", affiliateLink: "", affiliateType: "AMAZON" });
+                if (quillInstance.current) quillInstance.current.root.innerHTML = "";
+            };
+
+            const handleAddOrUpdateArticle = (e) => {
+                e.preventDefault();
+                const data = isPreview ? { ...previewData } : {
+                    title: new FormData(formRef.current).get('title'),
+                    category: new FormData(formRef.current).get('category'),
+                    excerpt: new FormData(formRef.current).get('excerpt'),
+                    content: quillInstance.current.root.innerHTML,
+                    imageUrl: new FormData(formRef.current).get('imageUrl'),
+                    imageAlt: new FormData(formRef.current).get('imageAlt'),
+                    affiliateLink: new FormData(formRef.current).get('affiliateLink'),
+                    affiliateType: new FormData(formRef.current).get('affiliateType')
+                };
+                const col = db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles');
+                if (editingId) {
+                    col.doc(editingId).update(data).then(() => { handleCancelEdit(); setIsPreview(false); navigateTo('home'); });
+                } else {
+                    col.add({ ...data, createdAt: Date.now() }).then(() => { handleCancelEdit(); setIsPreview(false); navigateTo('home'); });
+                }
+            };
+
+            const changeCategory = (cat) => {
+                navigateTo('home', null, cat);
+                setTimeout(() => {
+                    const section = document.getElementById('latest');
+                    if (section) section.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            };
+
+            const filteredArticles = articles.filter(art => {
+                if (categoryFilter === 'ALL') return true;
+                if (categoryFilter === 'MODE') return ['ACTIVEWEAR', 'LOUNGEWEAR', 'BEACHWEAR'].includes(art.category);
+                if (categoryFilter === 'GEEK') return ['GEEK', 'TECH'].includes(art.category);
+                return true;
+            });
+
+            if (loading) return <div className="h-screen flex items-center justify-center bg-[#FDF5E6] font-serif italic text-[#004D40]">Initialisation...</div>;
+
+            return (
+                <div className="min-h-screen flex flex-col text-left">
+                    <nav className="bg-white border-b sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-center shadow-sm gap-4 text-left">
+                        <div className="text-2xl font-serif font-bold text-[#004D40] cursor-pointer text-left" onClick={() => navigateTo('home')}>LeChoixDe<span className="text-[#6B0D0D]">Clara</span>.fr</div>
+                        <div className="flex items-center gap-6 md:gap-8 text-left">
+                            <button onClick={() => navigateTo('home')} className={`nav-link ${view === 'home' && categoryFilter === 'ALL' ? 'active' : ''}`}>Accueil</button>
+                            <button onClick={() => changeCategory('MODE')} className={`nav-link ${categoryFilter === 'MODE' ? 'active' : ''}`}>Le Dressing</button>
+                            <button onClick={() => changeCategory('GEEK')} className={`nav-link ${categoryFilter === 'GEEK' ? 'active' : ''}`}>Le Coin Geek</button>
+                            <button onClick={() => navigateTo('about')} className={`nav-link ${view === 'about' ? 'active' : ''}`}>À Propos</button>
+                            {user && user.uid === ADMIN_UID && view !== 'admin' && (
+                                <button onClick={() => navigateTo('admin')} className="bg-[#004D40] text-white px-4 py-2 rounded-full text-[10px] font-bold flex items-center gap-2 btn-hover tracking-widest uppercase transition text-left text-center">
+                                    <Icon name="Settings" size={14} /> Admin
+                                </button>
+                            )}
+                        </div>
+                    </nav>
+
+                    {/* MODAL STATISTIQUES */}
+                    {showStatsModal && (
+                        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4 md:p-8 backdrop-blur-md fade-in text-left text-left">
+                            <div className="bg-white rounded-3xl w-full h-full max-w-7xl flex flex-col shadow-2xl overflow-hidden scale-in">
+                                <div className="p-6 border-b flex justify-between items-center bg-[#004D40] text-white">
+                                    <h3 className="font-bold flex items-center gap-3 text-xl"><Icon name="BarChart3" /> Tableau de bord Umami</h3>
+                                    <button onClick={() => setShowStatsModal(false)} className="p-2 hover:bg-white/10 rounded-full transition text-left text-left"><Icon name="X" size={24} /></button>
+                                </div>
+                                <div className="flex-grow bg-gray-50">
+                                    <iframe src={`${UMAMI_SHARE_URL}?view=integrated`} width="100%" height="100%" frameBorder="0" className="w-full h-full"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showImageModal && (
+                        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md text-left">
+                            <div className="bg-white p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-[#004D40]/10 fade-in scale-in text-left">
+                                <h3 className="text-xl font-serif text-[#004D40] font-bold mb-6 flex items-center gap-3 text-left text-left"><Icon name="Image" className="text-[#6B0D0D]" /> Insérer une photo SEO</h3>
+                                <div className="space-y-5 text-left">
+                                    <div className="text-left text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">URL du fichier</label><input value={modalImageUrl} onChange={e => setModalImageUrl(e.target.value)} placeholder="image.webp" className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50 text-left text-left" autoFocus /></div>
+                                    <div className="text-left text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">Description SEO (ALT)</label><input value={modalImageAlt} onChange={e => setModalImageAlt(e.target.value)} placeholder="Clara porte..." className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50 text-left text-left" /></div>
+                                    <div className="flex gap-4 pt-4 text-left">
+                                        <button onClick={() => setShowImageModal(false)} className="flex-1 py-4 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition text-left text-left">Annuler</button>
+                                        <button onClick={submitImageToQuill} className="flex-1 py-4 bg-[#004D40] text-white rounded-xl font-bold shadow-lg text-left text-center">Insérer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showLoginModal && (
+                        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-6 backdrop-blur-sm fade-in text-left">
+                            <div className="bg-white p-10 rounded-3xl max-w-md w-full shadow-2xl relative text-left">
+                                <button onClick={() => setShowLoginModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black text-2xl font-bold text-left text-left">&times;</button>
+                                <div className="text-center mb-8 text-left text-left"><Icon name="Lock" size={40} className="text-[#6B0D0D] mb-4 text-left text-left text-left" /><h2 className="text-2xl font-serif text-[#004D40] text-left text-left">Admin</h2></div>
+                                <form onSubmit={handleLogin} className="space-y-4 text-left">
+                                    <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="Email" className="w-full p-4 border rounded-xl text-left text-left" required />
+                                    <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Pass" className="w-full p-4 border rounded-xl text-left text-left" required />
+                                    {authError && <p className="text-red-500 text-xs font-bold text-center text-left text-left">{authError}</p>}
+                                    <button className="w-full bg-[#004D40] text-white py-4 rounded-xl font-bold uppercase btn-hover text-left text-center">S'identifier</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {deletingId && (
+                        <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-md fade-in text-left text-left">
+                            <div className="bg-white p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl text-left text-left">
+                                <Icon name="AlertTriangle" size={48} className="text-red-500 mx-auto mb-4 text-left text-left" /><h3 className="text-xl font-bold mb-2 text-[#004D40] text-left text-left text-left">Supprimer ?</h3>
+                                <div className="flex gap-3 mt-6 text-left text-left text-left"><button onClick={() => setDeletingId(null)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-left text-left text-left">Non</button><button onClick={() => { db.collection('artifacts').doc(CLARA_APP_ID).collection('public').doc('data').collection('articles').doc(deletingId).delete(); setDeletingId(null); }} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-left text-center text-left text-left">Oui</button></div>
+                            </div>
+                        </div>
+                    )}
+
+                    <main className="flex-grow text-left">
+                        {view === 'home' && (
+                            <div className="fade-in text-left">
+                                <section className="bg-white py-8 md:py-12 px-6 text-left border-b border-gray-50 text-left">
+                                    <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center text-left text-left">
+                                        <div className="text-left text-left text-left text-left">
+                                            <span className="bg-[#004D40] text-white px-4 py-1 rounded-full text-[10px] font-bold mb-4 inline-block uppercase tracking-widest tracking-tighter text-left text-left text-left">28 ANS | 1M78 | EXPERTE CADEAUX</span>
+                                            <h1 className="text-4xl md:text-6xl font-serif leading-tight mb-6 text-[#004D40] text-left text-left text-left">L'arme secrète pour <span className="text-[#6B0D0D] italic">ses</span> cadeaux.</h1>
+                                            <p className="text-base text-gray-600 mb-8 italic border-l-4 border-[#6B0D0D] pl-6 leading-relaxed max-w-lg text-left text-left text-left text-left">"Moi c'est Clara. Je guide les hommes attentionnés dans leur choix de cadeaux pour leur chérie."</p>
+                                            <button onClick={() => document.getElementById('latest').scrollIntoView({behavior:'smooth'})} className="bg-[#6B0D0D] text-white px-10 py-4 rounded-xl font-bold shadow-xl btn-hover transition uppercase text-xs tracking-widest text-left text-center text-left text-left">Voir mes tests</button>
+                                        </div>
+                                        <div className="hidden md:block max-w-sm ml-auto aspect-[4/5] bg-gray-50 rounded-3xl flex items-center justify-center border-8 border-white shadow-xl overflow-hidden relative group text-left text-left">
+                                            <img src="clara-experte-avis-activewear-lechoixdeclara.webp" alt="Clara influenceuse IA" className="w-full h-full object-cover group-hover:scale-105 transition duration-1000 text-left text-left" />
+                                        </div>
+                                    </div>
+                                </section>
+                                
+                                <section id="latest" className="py-12 md:py-16 px-6 container mx-auto text-left text-left">
+                                    <div className="flex flex-col md:flex-row justify-between items-baseline mb-12 gap-4 text-left text-left text-left text-left text-left">
+                                        <h2 className="text-4xl font-serif text-[#004D40] text-left text-left text-left text-left text-left">
+                                            {categoryFilter === 'ALL' ? 'Derniers tests de Clara' : 
+                                             categoryFilter === 'MODE' ? 'Le Dressing de Clara' : 'Le Coin Geek'}
+                                        </h2>
+                                        {categoryFilter !== 'ALL' && (
+                                            <span className="bg-[#FDF5E6] border border-[#004D40]/20 text-[#004D40] text-[10px] px-4 py-1 rounded-full font-bold uppercase tracking-widest text-left text-left text-left">
+                                                Filtre : {categoryFilter === 'MODE' ? 'Le Dressing' : 'Le Coin Geek'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="grid md:grid-cols-3 gap-10 text-left text-left">
+                                        {filteredArticles.map(article => (
+                                            <div key={article.id} onClick={() => navigateTo('article', article)} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover text-left text-left text-left">
+                                                <div className="h-64 bg-gray-100 relative overflow-hidden text-left text-left">
+                                                    <span className="absolute top-4 left-4 bg-[#004D40] text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-md text-left text-left text-left text-left text-left">{article.category}</span>
+                                                    {article.imageUrl && <img src={article.imageUrl} alt={article.imageAlt || article.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500 text-left text-left text-left" />}
+                                                </div>
+                                                <div className="p-8 text-left text-left text-left text-left">
+                                                    <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-[#6B0D0D] transition text-left text-left text-left text-left text-left">{article.title}</h3>
+                                                    <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic text-left text-left text-left text-left">{article.excerpt}</p>
+                                                    <div className="flex justify-between items-center text-[#004D40] font-bold text-[10px] uppercase tracking-tighter text-left text-left text-left text-left text-left text-left"><span>Lire le test complet</span><Icon name="ChevronRight" size={16} /></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {filteredArticles.length === 0 && <p className="text-center py-20 italic text-gray-400 text-left text-left text-left text-left">Aucun test dans cette catégorie pour le moment.</p>}
+                                </section>
+                            </div>
+                        )}
+
+                        {view === 'article' && selectedArticle && (
+                            <ArticleLayout 
+                                article={selectedArticle} 
+                                onBack={() => window.history.back()} 
+                                allArticles={articles}
+                                onNavigate={navigateTo}
+                            />
+                        )}
+
+                        {view === 'about' && (
+                            <section className="max-w-4xl mx-auto px-6 py-20 text-left fade-in text-left text-left text-left text-left">
+                                <h1 className="text-4xl md:text-6xl font-serif text-[#004D40] mb-12 text-left text-left text-left text-left text-left">À Propos : Qui est Clara ?</h1>
+                                <div className="grid md:grid-cols-2 gap-12 mb-16 items-center text-left text-left text-left">
+                                    <img src="clara-experte-avis-activewear-lechoixdeclara.webp" className="rounded-3xl shadow-2xl border-8 border-white text-left text-left text-left" alt="Portrait de Clara" />
+                                    <div className="space-y-6 text-left text-left text-left text-left">
+                                        <p className="text-xl font-serif italic text-[#6B0D0D] text-left text-left text-left">"Parce que trouver le cadeau parfait pour une femme ne devrait plus être une épreuve de force."</p>
+                                        <p className="text-gray-600 leading-relaxed text-left text-left text-left text-left text-left">Bienvenue sur mon site. Je m'appelle Clara. J'ai 28 ans, je mesure 1m78 et je possède une silhouette athlétique que j'entretiens avec passion.</p>
+                                    </div>
+                                </div>
+                                <div className="html-content space-y-8 text-left text-left text-left text-left text-left">
+                                    <h2 className="text-left text-left text-left text-left text-left">Ma Mission : L'Arme Secrète des Hommes</h2>
+                                    <p className="text-left text-left text-left text-left text-left">Je teste tout ce qu'elle rêve de recevoir pour que vous ne puissiez plus jamais vous tromper. Je porte, je lave, je plie, je connecte et j'éprouve chaque produit avant de vous donner mon verdict final.</p>
+                                    <p className="font-bold text-[#004D40] text-left text-left text-left text-left text-left text-left">Clara, experte en cadeaux (et en vérité).</p>
+                                </div>
+                            </section>
+                        )}
+
+                        {view === 'legal' && (
+                            <section className="max-w-4xl mx-auto px-6 py-20 text-left fade-in text-left text-left text-left text-left">
+                                <h1 className="text-4xl font-serif text-[#004D40] mb-12 text-left text-left text-left text-left text-left text-left text-left">Mentions Légales</h1>
+                                <div className="html-content space-y-8 text-left text-left text-left text-left text-left">
+                                    <h2 className="text-left text-left">Édition du site</h2>
+                                    <p className="text-left text-left text-left">Le site <strong>LeChoixDeClara.fr</strong> est édité par :<br />
+                                    Marc ASSI<br />
+                                    2 rue Georges Charpake<br />
+                                    92160 ANTONY, FRANCE<br />
+                                    Contact : <a href="mailto:nova.iris.kael@gmail.com" className="text-[#6B0D0D] font-bold text-left text-left">nova.iris.kael@gmail.com</a></p>
+                                    <h2 className="text-left text-left text-left text-left text-left">Hébergement</h2>
+                                    <p className="text-left text-left text-left text-left text-left text-left">Le site est hébergé par GitHub Inc. (GitHub Pages)<br />
+                                    88 Colin P. Kelly Jr. Street<br />
+                                    San Francisco, CA 94107, USA</p>
+                                    <h2 className="text-left text-left text-left text-left text-left text-left text-left text-left">Propriété intellectuelle</h2>
+                                    <p className="text-left text-left text-left text-left text-left text-left text-left text-left">L'ensemble des contenus (textes, logos, photographies générées par IA de Clara) est la propriété exclusive de l'éditeur. Toute reproduction est interdite sans accord préalable.</p>
+                                </div>
+                            </section>
+                        )}
+
+                        {view === 'privacy' && (
+                            <section className="max-w-4xl mx-auto px-6 py-20 text-left fade-in text-left text-left text-left text-left text-left text-left">
+                                <h1 className="text-4xl font-serif text-[#004D40] mb-12 text-left text-left text-left text-left text-left text-left text-left text-left">Politique de Confidentialité</h1>
+                                <div className="html-content space-y-8 text-left text-left text-left text-left text-left">
+                                    <h2 className="text-left text-left text-left">Collecte et Cookies</h2>
+                                    <p className="text-left text-left text-left text-left text-left">Le site <strong>LeChoixDeClara.fr</strong> respecte votre anonymat. Nous utilisons <strong>Umami Cloud</strong> pour nos statistiques, un outil respectueux de la vie privée qui ne dépose aucun cookie traceur et ne collecte aucune donnée personnelle identifiable.</p>
+                                    <h2 className="text-left text-left text-left text-left">Données Techniques</h2>
+                                    <p className="text-left text-left text-left text-left text-left text-left text-left">Ce site utilise les services de Google Firebase pour la gestion du contenu. Vos données de navigation restent anonymes et ne sont jamais revendues.</p>
+                                </div>
+                            </section>
+                        )}
+
+                        {view === 'affiliation' && (
+                            <section className="max-w-4xl mx-auto px-6 py-20 text-left fade-in text-left text-left text-left text-left text-left text-left">
+                                <h1 className="text-4xl font-serif text-[#004D40] mb-12 text-left text-left text-left text-left text-left text-left text-left text-left text-left">Divulgation d'Affiliation</h1>
+                                <div className="html-content space-y-8 text-left text-left text-left text-left text-left text-left">
+                                    <h2 className="text-left text-left text-left">Transparence Amazon & Instant Gaming</h2>
+                                    <p className="text-left text-left text-left text-left text-left">LeChoixDeClara.fr participe au Programme Partenaires d’Amazon EU et au programme d'affiliation d'Instant Gaming. Ces programmes nous permettent de percevoir une commission sur les achats que vous effectuez via nos liens, <strong>sans aucun surcoût pour vous</strong>.</p>
+                                    <p className="text-left text-left text-left text-left text-left text-left text-left text-left">En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. Clara sélectionne les produits en toute indépendance selon ses tests personnels.</p>
+                                </div>
+                            </section>
+                        )}
+
+                        {view === 'admin' && user && user.uid === ADMIN_UID && (
+                            <div className="max-w-6xl mx-auto px-6 py-12 text-left fade-in text-left text-left text-left text-left text-left">
+                                <div className="flex justify-between items-center mb-12 border-b pb-8 text-left text-left text-left text-left text-left text-left">
+                                    <h2 className="text-3xl font-serif text-[#004D40] font-bold text-left text-left text-left text-left text-left">Atelier de Rédaction</h2>
+                                    <button onClick={() => { handleCancelEdit(); auth.signOut(); navigateTo('home'); }} className="text-gray-400 hover:text-[#6B0D0D] flex items-center gap-2 font-bold transition text-left text-left text-left text-left text-left"><Icon name="LogOut" size={18}/> Quitter</button>
+                                </div>
+
+                                <div className="mb-12 flex gap-4 text-left">
+                                    <button onClick={() => setShowStatsModal(true)} className="bg-white p-6 rounded-3xl shadow-sm border border-[#004D40]/20 flex items-center gap-4 hover:border-[#004D40] transition flex-1 text-left">
+                                        <div className="bg-[#004D40]/10 p-4 rounded-2xl text-[#004D40] text-left"><Icon name="BarChart3" size={32} /></div>
+                                        <div className="text-left text-left text-left text-left text-left">
+                                            <h3 className="font-bold text-[#004D40] text-lg text-left text-left text-left text-left">Statistiques de Visites</h3>
+                                            <p className="text-sm text-gray-500 text-left text-left text-left">Ouvrir le tableau de bord complet Umami</p>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <div className="grid lg:grid-cols-2 gap-12 items-start text-left text-left text-left">
+                                    <div className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 text-left">
+                                        <div className="flex justify-between items-center mb-8 text-left text-left text-left text-left">
+                                            <h3 className="font-bold flex items-center gap-2 text-xl text-[#004D40] text-left text-left text-left text-left text-left"><Icon name={editingId ? "Edit3" : "Plus"} /> {editingId ? "Edition" : "Nouveau Test"}</h3>
+                                            {editingId && <button onClick={handleCancelEdit} className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest transition text-left text-left text-left">Annuler</button>}
+                                        </div>
+                                        <form ref={formRef} onSubmit={handleAddOrUpdateArticle} className="space-y-6 text-left">
+                                            <div className="grid grid-cols-2 gap-4 text-left text-left text-left">
+                                                <input name="title" defaultValue={previewData.title || ''} placeholder="Nom produit" className="p-4 border rounded-xl outline-none text-left" required />
+                                                <select name="category" defaultValue={previewData.category || 'ACTIVEWEAR'} className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left"><option>ACTIVEWEAR</option><option>LOUNGEWEAR</option><option>BEACHWEAR</option><option>GEEK</option><option>TECH</option></select>
+                                            </div>
+                                            <input name="excerpt" defaultValue={previewData.excerpt || ''} placeholder="Accroche SEO" className="w-full p-4 border rounded-xl outline-none text-left" required />
+                                            <div className="space-y-2 text-left text-left"><label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1 text-left text-left">Récit du test</label><div ref={quillRef} style={{height: '450px'}}></div></div>
+                                            <div className="grid grid-cols-2 gap-4 text-left text-left text-left">
+                                                <input name="imageUrl" defaultValue={previewData.imageUrl || ''} placeholder="image.webp" className="p-4 border rounded-xl outline-none bg-gray-50 text-left" required />
+                                                <input name="imageAlt" defaultValue={previewData.imageAlt || ''} placeholder="ALT SEO" className="p-4 border rounded-xl outline-none bg-gray-50 text-left text-left text-left" />
+                                            </div>
+                                            <div className="bg-emerald/5 p-6 rounded-2xl border border-emerald/10 space-y-4 text-left">
+                                                <div className="flex gap-4 text-left text-left">
+                                                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-emerald/40 transition">
+                                                        <input type="radio" name="affiliateType" value="AMAZON" defaultChecked={previewData.affiliateType !== 'INSTANT_GAMING'} className="accent-emerald text-left text-left text-left text-left" />
+                                                        <span className="text-xs font-bold uppercase text-left text-left text-left">Amazon</span>
+                                                    </label>
+                                                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-orange-400 transition text-left text-left text-left">
+                                                        <input type="radio" name="affiliateType" value="INSTANT_GAMING" defaultChecked={previewData.affiliateType === 'INSTANT_GAMING'} className="accent-[#FF6600] text-left text-left text-left text-left" />
+                                                        <span className="text-xs font-bold uppercase text-left text-left text-left">Instant Gaming</span>
+                                                    </label>
+                                                </div>
+                                                <input name="affiliateLink" defaultValue={previewData.affiliateLink || ''} placeholder="Lien d'affiliation" className="w-full p-4 border rounded-xl outline-none text-left" required />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 pt-4 text-center">
+                                                <button type="button" onClick={handleTogglePreview} className="bg-[#004D40] text-white py-5 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition hover:scale-[1.02] tracking-widest uppercase text-xs text-center text-left text-left text-left text-left text-left text-left"><Icon name="Eye" /> Prévisualiser</button>
+                                                <button className="bg-[#6B0D0D] text-white py-5 rounded-2xl font-bold shadow-lg transition hover:scale-[1.02] tracking-widest uppercase text-xs text-center text-left text-left text-left text-left text-left text-left">{editingId ? "Mettre à jour" : "Publier"}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <div className="space-y-4 text-left text-left text-left text-left text-left">
+                                        <h3 className="font-bold mb-8 text-[#004D40] flex items-center justify-between text-left text-left text-left text-left"><span>Articles en ligne</span><span className="bg-[#004D40]/10 text-[#004D40] px-3 py-1 rounded-full text-xs font-mono text-left text-left text-left text-left">{articles.length}</span></h3>
+                                        <div className="grid gap-4 max-h-[1100px] overflow-y-auto pr-1 text-left text-left text-left text-left text-left text-left text-left">
+                                            {articles.map(art => (
+                                                <div key={art.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm transition duration-300 text-left text-left text-left text-left text-left text-left">
+                                                    <div className="mb-6 text-left">
+                                                        <p className="font-bold text-base text-[#004D40] text-left text-left text-left text-left">{art.title}</p>
+                                                        <div className="flex gap-3 mt-2 text-left text-left text-left text-left text-left">
+                                                            <span className="text-[10px] bg-[#004D40] text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider text-left text-left text-left text-left">{art.category}</span>
+                                                            <span className={`text-[10px] font-black uppercase tracking-tighter text-left text-left text-left ${art.affiliateType === 'INSTANT_GAMING' ? 'text-orange-500' : 'text-blue-500'}`}>{art.affiliateType || 'AMAZON'}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-4 text-left text-left text-left text-left text-left text-left">
+                                                        <button onClick={() => handleEditClick(art)} className="flex-1 bg-[#004D40] hover:bg-[#003d33] text-white py-3 rounded-xl shadow-md border border-[#003d33] flex items-center justify-center gap-2 transition-all text-center text-left text-left text-left text-left" title="Modifier text-left text-left text-left text-left text-left"><Icon name="Edit3" size={18} /> <span className="text-xs font-bold uppercase">Modifier</span></button>
+                                                        <button onClick={() => setDeletingId(art.id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl shadow-md border border-red-800 flex items-center justify-center gap-2 transition-all text-center text-left text-left text-left text-left" title="Supprimer text-left text-left text-left text-left text-left"><Icon name="Trash2" size={18} /> <span className="text-xs font-bold uppercase text-left text-left text-left text-left">Supprimer</span></button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isPreview && (
+                            <div className="fixed inset-0 z-[150] bg-[#FDF5E6] overflow-y-auto pt-24 fade-in text-left text-left text-left text-left text-left">
+                                <div className="max-w-4xl mx-auto px-6 mb-12 text-left text-left text-left text-left text-left">
+                                    <div className="flex justify-between items-center bg-[#004D40] text-white p-6 rounded-2xl shadow-2xl sticky top-4 z-[160] text-left text-left text-left text-left text-left">
+                                        <div className="flex items-center gap-3 text-left text-left text-left text-left text-left"><Icon name="Eye" /><p className="font-bold text-left text-left text-left text-left text-left text-left">Prévisualisation</p></div>
+                                        <div className="flex gap-4 text-left text-left text-left text-left text-left text-left"><button onClick={handleTogglePreview} className="bg-white/10 px-6 py-3 rounded-xl font-bold transition text-center text-left text-left text-left text-left">Retour</button><button onClick={handleAddOrUpdateArticle} className="bg-white text-[#004D40] px-8 py-3 rounded-xl font-bold shadow-xl transition text-center text-left text-left text-left text-left text-left">{editingId ? "Sauvegarder" : "Publier"}</button></div>
+                                    </div>
+                                </div>
+                                <div className="bg-white rounded-t-[3rem] shadow-sm border-t overflow-hidden text-left text-left text-left text-left text-left text-left"><ArticleLayout article={previewData} onBack={handleTogglePreview} allArticles={articles} onNavigate={navigateTo} /></div>
+                            </div>
+                        )}
+                    </main>
+
+                    <footer className="bg-[#1A1A1A] text-white py-20 px-6 border-t border-white/5 text-left mt-auto">
+                        <div className="container mx-auto grid md:grid-cols-3 gap-16 text-left text-left text-left text-left text-left">
+                            <div className="text-left text-left text-left text-left text-left text-left">
+                                <div className="text-3xl font-serif font-bold mb-8 cursor-default select-none text-white text-left text-left text-left text-left text-left text-left">LeCh<span onClick={handleAdminTrigger} className="cursor-default hover:text-[#6B0D0D] transition-colors duration-200">o</span>ixDeClara</div>
+                                <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs text-left text-left text-left text-left text-left text-left text-left">"Moi c'est Clara. Je guide les hommes attentionnés dans leur choix de cadeaux pour leur chérie."</p>
+                            </div>
+                            <div className="text-gray-500 text-[10px] space-y-4 uppercase tracking-widest font-bold text-left text-left text-left text-left text-left text-left">
+                                <div onClick={() => navigateTo('home')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left">Accueil</div>
+                                <div onClick={() => navigateTo('about')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left">Qui est Clara ?</div>
+                                <div onClick={() => navigateTo('legal')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left">Mentions Légales</div>
+                                <div onClick={() => navigateTo('privacy')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left">Confidentialité</div>
+                                <div onClick={() => navigateTo('affiliation')} className="hover:text-white transition cursor-pointer text-left text-left text-left text-left text-left text-left text-left">Affiliation</div>
+                            </div>
+                            <div className="text-gray-400 text-sm text-left text-left text-left text-left text-left text-left">
+                                <p className="font-bold text-white mb-4 uppercase tracking-widest text-[10px] text-left text-left text-left text-left text-left text-left">Contact</p>
+                                <p className="italic text-gray-500 mb-8 text-xs text-left text-left text-left text-left text-left text-left">nova.iris.kael@gmail.com</p>
+                                <p className="text-gray-600 text-[10px] mt-4 font-mono text-left text-left text-left text-left text-left text-left">Je guide les hommes attentionnés.</p>
+                            </div>
+                        </div>
+                        <div className="container mx-auto mt-20 pt-8 border-t border-white/5 text-[10px] text-gray-700 font-mono text-center">© 2026 LECHOIXDECLARA.FR</div>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
