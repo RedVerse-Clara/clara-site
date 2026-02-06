@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithEmailAndPassword, signInAnonymously, signOut } from 'firebase/auth';
 import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { db, auth, CLARA_APP_ID, ADMIN_UID, UMAMI_SHARE_URL } from './config/firebase';
 import { slugify } from './utils/slugify';
 import { useStructuredData, generateHomeStructuredData } from './utils/structuredData';
@@ -228,9 +229,7 @@ function App() {
         setEditingId(art.id);
         setPreviewData({ ...art });
         navigateTo('admin');
-        if (quillRef.current) {
-            quillRef.current.getEditor().root.innerHTML = art.content;
-        }
+        window.scrollTo(0, 0);
     };
 
     // Annuler l'édition
@@ -240,9 +239,6 @@ function App() {
             title: '', category: 'ACTIVEWEAR', excerpt: '', content: '',
             imageUrl: '', imageAlt: '', affiliateLink: '', affiliateType: 'AMAZON'
         });
-        if (quillRef.current) {
-            quillRef.current.getEditor().root.innerHTML = '';
-        }
     };
 
     // Ajouter ou mettre à jour un article
@@ -283,8 +279,8 @@ function App() {
         }
     };
 
-    // Configuration Quill
-    const quillModules = {
+    // Configuration Quill (useMemo pour éviter les re-renders infinis)
+    const quillModules = useMemo(() => ({
         toolbar: {
             container: [
                 [{ 'header': [1, 2, false] }],
@@ -296,7 +292,7 @@ function App() {
                 image: () => setShowImageModal(true)
             }
         }
-    };
+    }), []);
 
     // Removed blocking loading screen - content renders immediately while Firebase initializes
     // This improves SEO (content visible to crawlers) and Core Web Vitals (faster FCP/LCP)
@@ -670,7 +666,7 @@ function App() {
                                                 <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-clara-burgundy transition">
                                                     {article.title}
                                                 </h3>
-                                                <p className="text-gray-600 text-sm line-clamp-2 mb-6 italic">
+                                                <p className="text-gray-600 text-sm line-clamp-2 mb-6">
                                                     {article.excerpt}
                                                 </p>
                                                 <div className="flex justify-between items-center text-clara-green font-bold text-[10px] uppercase tracking-tighter">
@@ -853,14 +849,16 @@ function App() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <input
                                             name="title"
-                                            defaultValue={previewData.title || ''}
+                                            value={previewData.title || ''}
+                                            onChange={(e) => setPreviewData({ ...previewData, title: e.target.value })}
                                             placeholder="Nom produit"
                                             className="p-4 border rounded-xl outline-none"
                                             required
                                         />
                                         <select
                                             name="category"
-                                            defaultValue={previewData.category || 'ACTIVEWEAR'}
+                                            value={previewData.category || 'ACTIVEWEAR'}
+                                            onChange={(e) => setPreviewData({ ...previewData, category: e.target.value })}
                                             className="p-4 border rounded-xl outline-none bg-gray-50"
                                         >
                                             <option>ACTIVEWEAR</option>
@@ -872,7 +870,8 @@ function App() {
                                     </div>
                                     <input
                                         name="excerpt"
-                                        defaultValue={previewData.excerpt || ''}
+                                        value={previewData.excerpt || ''}
+                                        onChange={(e) => setPreviewData({ ...previewData, excerpt: e.target.value })}
                                         placeholder="Accroche SEO"
                                         className="w-full p-4 border rounded-xl outline-none"
                                         required
@@ -882,6 +881,7 @@ function App() {
                                             Récit du test
                                         </label>
                                         <ReactQuill
+                                            key={editingId || 'new'}
                                             ref={quillRef}
                                             theme="snow"
                                             modules={quillModules}
@@ -893,14 +893,16 @@ function App() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <input
                                             name="imageUrl"
-                                            defaultValue={previewData.imageUrl || ''}
+                                            value={previewData.imageUrl || ''}
+                                            onChange={(e) => setPreviewData({ ...previewData, imageUrl: e.target.value })}
                                             placeholder="images/image.webp"
                                             className="p-4 border rounded-xl outline-none bg-gray-50"
                                             required
                                         />
                                         <input
                                             name="imageAlt"
-                                            defaultValue={previewData.imageAlt || ''}
+                                            value={previewData.imageAlt || ''}
+                                            onChange={(e) => setPreviewData({ ...previewData, imageAlt: e.target.value })}
                                             placeholder="ALT SEO"
                                             className="p-4 border rounded-xl outline-none bg-gray-50"
                                         />
@@ -912,7 +914,8 @@ function App() {
                                                     type="radio"
                                                     name="affiliateType"
                                                     value="AMAZON"
-                                                    defaultChecked={previewData.affiliateType !== 'INSTANT_GAMING'}
+                                                    checked={previewData.affiliateType !== 'INSTANT_GAMING'}
+                                                    onChange={(e) => setPreviewData({ ...previewData, affiliateType: e.target.value })}
                                                     className="accent-emerald"
                                                 />
                                                 <span className="text-xs font-bold uppercase">Amazon</span>
@@ -922,7 +925,8 @@ function App() {
                                                     type="radio"
                                                     name="affiliateType"
                                                     value="INSTANT_GAMING"
-                                                    defaultChecked={previewData.affiliateType === 'INSTANT_GAMING'}
+                                                    checked={previewData.affiliateType === 'INSTANT_GAMING'}
+                                                    onChange={(e) => setPreviewData({ ...previewData, affiliateType: e.target.value })}
                                                     className="accent-[#FF6600]"
                                                 />
                                                 <span className="text-xs font-bold uppercase">Instant Gaming</span>
@@ -930,7 +934,8 @@ function App() {
                                         </div>
                                         <input
                                             name="affiliateLink"
-                                            defaultValue={previewData.affiliateLink || ''}
+                                            value={previewData.affiliateLink || ''}
+                                            onChange={(e) => setPreviewData({ ...previewData, affiliateLink: e.target.value })}
                                             placeholder="Lien d'affiliation"
                                             className="w-full p-4 border rounded-xl outline-none"
                                             required

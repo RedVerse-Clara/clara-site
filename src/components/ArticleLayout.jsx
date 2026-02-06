@@ -94,8 +94,8 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                     <h1 className="text-4xl md:text-6xl font-serif mb-8 text-clara-green leading-tight">
                         {article.title}
                     </h1>
-                    <p className="text-xl italic border-l-4 border-clara-burgundy pl-6 mb-8 bg-white py-8 rounded-r-2xl shadow-sm text-gray-700">
-                        "{article.excerpt}"
+                    <p className="text-xl italic border-l-4 border-clara-burgundy pl-6 pr-6 py-8 mb-8 bg-white rounded-r-2xl shadow-sm text-gray-700">
+                        {article.excerpt}
                     </p>
 
                     {/* Bouton haut de page */}
