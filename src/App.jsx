@@ -26,6 +26,7 @@ function App() {
     const [showImageModal, setShowImageModal] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // États admin
     const [secretClicks, setSecretClicks] = useState(0);
@@ -316,7 +317,9 @@ function App() {
                 >
                     LeChoixDe<span className="text-clara-burgundy">Clara</span>.fr
                 </div>
-                <div className="flex items-center gap-6 md:gap-8">
+
+                {/* Desktop Navigation */}
+                <div className="hidden md:flex items-center gap-6 md:gap-8">
                     <button
                         onClick={() => navigateTo('home')}
                         className={`nav-link ${view === 'home' && categoryFilter === 'ALL' ? 'active' : ''}`}
@@ -359,7 +362,68 @@ function App() {
                         </button>
                     )}
                 </div>
+
+                {/* Mobile Hamburger Button */}
+                <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition"
+                    aria-label="Ouvrir le menu de navigation"
+                    aria-expanded={mobileMenuOpen}
+                >
+                    <Icon name={mobileMenuOpen ? "X" : "Menu"} size={24} />
+                </button>
             </nav>
+
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Mobile Menu */}
+            <div className={`fixed top-[73px] right-0 bottom-0 w-64 bg-white shadow-2xl z-50 transform transition-transform duration-300 md:hidden ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="flex flex-col p-6 gap-4">
+                    <button
+                        onClick={() => { navigateTo('home'); setMobileMenuOpen(false); }}
+                        className={`nav-link text-left ${view === 'home' && categoryFilter === 'ALL' ? 'active' : ''}`}
+                        aria-label="Aller à la page d'accueil"
+                    >
+                        Accueil
+                    </button>
+                    <button
+                        onClick={() => { changeCategory('MODE'); setMobileMenuOpen(false); }}
+                        className={`nav-link text-left ${categoryFilter === 'MODE' ? 'active' : ''}`}
+                        aria-label="Filtrer par catégorie Mode"
+                    >
+                        Le Dressing
+                    </button>
+                    <button
+                        onClick={() => { changeCategory('GEEK'); setMobileMenuOpen(false); }}
+                        className={`nav-link text-left ${categoryFilter === 'GEEK' ? 'active' : ''}`}
+                        aria-label="Filtrer par catégorie Geek"
+                    >
+                        Le Coin Geek
+                    </button>
+                    <button
+                        onClick={() => { navigateTo('about'); setMobileMenuOpen(false); }}
+                        className={`nav-link text-left ${view === 'about' ? 'active' : ''}`}
+                        aria-label="Aller à la page À Propos"
+                    >
+                        À Propos
+                    </button>
+                    {user && user.uid === ADMIN_UID && view !== 'admin' && (
+                        <button
+                            onClick={() => { navigateTo('admin'); setMobileMenuOpen(false); }}
+                            className="bg-clara-green text-white px-4 py-2 rounded-full text-[10px] font-bold flex items-center gap-2 btn-hover tracking-widest uppercase transition mt-4"
+                            aria-label="Accéder à l'interface d'administration"
+                        >
+                            <Icon name="Settings" size={14} /> Admin
+                        </button>
+                    )}
+                </div>
+            </div>
 
             {/* Modal Statistiques */}
             {showStatsModal && (
