@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function pour vérifier si l'utilisateur est admin
+    function isAdmin() {
+      // Remplacez par votre vrai ADMIN_UID depuis Firebase Console
+      return request.auth != null && 
+             request.auth.uid == 'VOTRE_ADMIN_UID_ICI';
+    }
+    
+    // Articles : lecture publique, écriture admin uniquement
+    match /artifacts/le-choix-de-clara/public/data/articles/{article} {
+      // Tout le monde peut lire les articles
+      allow read: if true;
+      
+      // Seul l'admin peut créer, modifier ou supprimer
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Statistiques et autres données : admin uniquement
+    match /artifacts/le-choix-de-clara/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Tout le reste : refusé par défaut
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

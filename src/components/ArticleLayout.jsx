@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Icon from './Icon';
 import { useStructuredData, generateArticleStructuredData } from '../utils/structuredData';
+import { sanitizeHTML } from '../utils/sanitizer';
 
 /**
  * Composant pour afficher un article complet
@@ -113,8 +114,8 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                 )}
 
                 <div
-                    className="html-content text-lg"
-                    dangerouslySetInnerHTML={{ __html: article.content || "" }}
+                    className="prose prose-lg max-w-none mb-12 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(article.content || "") }}
                 />
 
                 <footer className="bg-white p-12 rounded-3xl shadow-xl text-center border border-gray-50 my-20">
