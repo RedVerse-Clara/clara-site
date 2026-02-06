@@ -528,41 +528,59 @@ function App() {
                             </div>
 
                             <div className="grid md:grid-cols-3 gap-10">
-                                {filteredArticles.map(article => (
-                                    <div
-                                        key={article.id}
-                                        onClick={() => navigateTo('article', article)}
-                                        className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover"
-                                    >
-                                        <div className="h-64 bg-gray-100 relative overflow-hidden">
-                                            <span className="absolute top-4 left-4 bg-clara-green text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-md">
-                                                {article.category}
-                                            </span>
-                                            {article.imageUrl && (
-                                                <img
-                                                    src={article.imageUrl}
-                                                    alt={article.imageAlt || article.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                                                    loading="lazy"
-                                                />
-                                            )}
-                                        </div>
-                                        <div className="p-8">
-                                            <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-clara-burgundy transition">
-                                                {article.title}
-                                            </h3>
-                                            <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic">
-                                                {article.excerpt}
-                                            </p>
-                                            <div className="flex justify-between items-center text-clara-green font-bold text-[10px] uppercase tracking-tighter">
-                                                <span>Lire le test complet</span>
-                                                <Icon name="ChevronRight" size={16} />
+                                {articles.length === 0 ? (
+                                    // Skeleton loader - shows immediately while Firebase loads
+                                    [...Array(6)].map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 animate-pulse"
+                                        >
+                                            <div className="h-64 bg-gray-200"></div>
+                                            <div className="p-8 space-y-4">
+                                                <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                                                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                                                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    // Real articles once loaded
+                                    filteredArticles.map(article => (
+                                        <div
+                                            key={article.id}
+                                            onClick={() => navigateTo('article', article)}
+                                            className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover"
+                                        >
+                                            <div className="h-64 bg-gray-100 relative overflow-hidden">
+                                                <span className="absolute top-4 left-4 bg-clara-green text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-md">
+                                                    {article.category}
+                                                </span>
+                                                {article.imageUrl && (
+                                                    <img
+                                                        src={article.imageUrl}
+                                                        alt={article.imageAlt || article.title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                        loading="lazy"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="p-8">
+                                                <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-clara-burgundy transition">
+                                                    {article.title}
+                                                </h3>
+                                                <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic">
+                                                    {article.excerpt}
+                                                </p>
+                                                <div className="flex justify-between items-center text-clara-green font-bold text-[10px] uppercase tracking-tighter">
+                                                    <span>Lire le test complet</span>
+                                                    <Icon name="ChevronRight" size={16} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
-                            {filteredArticles.length === 0 && (
+                            {filteredArticles.length === 0 && articles.length > 0 && (
                                 <p className="text-center py-20 italic text-gray-400">
                                     Aucun test dans cette catégorie pour le moment.
                                 </p>
