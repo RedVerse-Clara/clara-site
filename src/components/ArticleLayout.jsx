@@ -118,7 +118,7 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                 />
 
                 <footer className="bg-white p-12 rounded-3xl shadow-xl text-center border border-gray-50 my-20">
-                    <p className="mb-6 font-bold text-gray-400 uppercase tracking-widest text-[10px]">
+                    <p className="mb-6 font-bold text-gray-600 uppercase tracking-widest text-[10px]">
                         Sélection officielle Clara • Partenaire {isInstantGaming ? 'Instant Gaming' : 'Amazon'}
                     </p>
                     {/* Bouton bas de page */}

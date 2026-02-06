@@ -5,6 +5,8 @@ import ReactQuill from 'react-quill';
 import { db, auth, CLARA_APP_ID, ADMIN_UID, UMAMI_SHARE_URL } from './config/firebase';
 import { slugify } from './utils/slugify';
 import { useStructuredData, generateHomeStructuredData } from './utils/structuredData';
+import { useFocusTrap } from './hooks/useFocusTrap';
+import { useKeyboardShortcut } from './hooks/useKeyboardShortcut';
 import Icon from './components/Icon';
 import ArticleLayout from './components/ArticleLayout';
 
@@ -14,13 +16,15 @@ function App() {
     const [categoryFilter, setCategoryFilter] = useState('ALL');
     const [articles, setArticles] = useState([]);
     const [selectedArticle, setSelectedArticle] = useState(null);
+
+    // États Firebase
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // États modals
-    const [showLoginModal, setShowLoginModal] = useState(false);
     const [showStatsModal, setShowStatsModal] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
 
     // États admin
@@ -42,6 +46,14 @@ function App() {
     // Refs
     const quillRef = useRef(null);
     const formRef = useRef(null);
+
+    // Hooks d'accessibilité (DOIVENT être après tous les useState)
+    const statsModalRef = useFocusTrap(showStatsModal);
+
+    // Fermer les modals avec Escape
+    useKeyboardShortcut('Escape', () => {
+        if (showStatsModal) setShowStatsModal(false);
+    }, showStatsModal);
 
     // Navigation avec gestion de l'historique
     const navigateTo = (newView, article = null, filter = 'ALL') => {
@@ -291,11 +303,16 @@ function App() {
 
     return (
         <div className="min-h-screen flex flex-col">
+            {/* Skip Link pour accessibilité */}
+            <a href="#main-content" className="skip-link">
+                Aller au contenu principal
+            </a>
+
             {/* Navigation */}
-            <nav className="bg-white border-b sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-center shadow-sm gap-4">
+            <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
                 <div
-                    className="text-2xl font-serif font-bold text-clara-green cursor-pointer"
                     onClick={() => navigateTo('home')}
+                    className="text-2xl md:text-3xl font-serif font-bold cursor-pointer text-clara-green"
                 >
                     LeChoixDe<span className="text-clara-burgundy">Clara</span>.fr
                 </div>
@@ -303,24 +320,32 @@ function App() {
                     <button
                         onClick={() => navigateTo('home')}
                         className={`nav-link ${view === 'home' && categoryFilter === 'ALL' ? 'active' : ''}`}
+                        aria-label="Aller à la page d'accueil"
+                        aria-current={view === 'home' && categoryFilter === 'ALL' ? 'page' : undefined}
                     >
                         Accueil
                     </button>
                     <button
                         onClick={() => changeCategory('MODE')}
                         className={`nav-link ${categoryFilter === 'MODE' ? 'active' : ''}`}
+                        aria-label="Filtrer par catégorie Mode - Le Dressing"
+                        aria-current={categoryFilter === 'MODE' ? 'page' : undefined}
                     >
                         Le Dressing
                     </button>
                     <button
                         onClick={() => changeCategory('GEEK')}
                         className={`nav-link ${categoryFilter === 'GEEK' ? 'active' : ''}`}
+                        aria-label="Filtrer par catégorie Geek - Le Coin Geek"
+                        aria-current={categoryFilter === 'GEEK' ? 'page' : undefined}
                     >
                         Le Coin Geek
                     </button>
                     <button
                         onClick={() => navigateTo('about')}
                         className={`nav-link ${view === 'about' ? 'active' : ''}`}
+                        aria-label="Aller à la page À Propos"
+                        aria-current={view === 'about' ? 'page' : undefined}
                     >
                         À Propos
                     </button>
@@ -328,6 +353,7 @@ function App() {
                         <button
                             onClick={() => navigateTo('admin')}
                             className="bg-clara-green text-white px-4 py-2 rounded-full text-[10px] font-bold flex items-center gap-2 btn-hover tracking-widest uppercase transition"
+                            aria-label="Accéder à l'interface d'administration"
                         >
                             <Icon name="Settings" size={14} /> Admin
                         </button>
@@ -338,14 +364,21 @@ function App() {
             {/* Modal Statistiques */}
             {showStatsModal && (
                 <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4 md:p-8 backdrop-blur-md fade-in">
-                    <div className="bg-white rounded-3xl w-full h-full max-w-7xl flex flex-col shadow-2xl overflow-hidden scale-in">
+                    <div
+                        ref={statsModalRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="stats-modal-title"
+                        className="bg-white rounded-3xl w-full h-full max-w-7xl flex flex-col shadow-2xl overflow-hidden scale-in"
+                    >
                         <div className="p-6 border-b flex justify-between items-center bg-clara-green text-white">
-                            <h3 className="font-bold flex items-center gap-3 text-xl">
+                            <h3 id="stats-modal-title" className="font-bold flex items-center gap-3 text-xl">
                                 <Icon name="BarChart3" /> Tableau de bord Umami
                             </h3>
                             <button
                                 onClick={() => setShowStatsModal(false)}
                                 className="p-2 hover:bg-white/10 rounded-full transition"
+                                aria-label="Fermer le tableau de bord"
                             >
                                 <Icon name="X" size={24} />
                             </button>
@@ -372,7 +405,7 @@ function App() {
                         </h3>
                         <div className="space-y-5">
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">
+                                <label className="text-[10px] font-bold uppercase text-gray-600 tracking-widest block mb-1">
                                     URL du fichier
                                 </label>
                                 <input
@@ -384,7 +417,7 @@ function App() {
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">
+                                <label className="text-[10px] font-bold uppercase text-gray-600 tracking-widest block mb-1">
                                     Description SEO (ALT)
                                 </label>
                                 <input
@@ -419,7 +452,7 @@ function App() {
                     <div className="bg-white p-10 rounded-3xl max-w-md w-full shadow-2xl relative">
                         <button
                             onClick={() => setShowLoginModal(false)}
-                            className="absolute top-6 right-6 text-gray-400 hover:text-black text-2xl font-bold"
+                            className="absolute top-6 right-6 text-gray-600 hover:text-black text-2xl font-bold"
                         >
                             &times;
                         </button>
@@ -573,7 +606,7 @@ function App() {
                                                 <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-clara-burgundy transition">
                                                     {article.title}
                                                 </h3>
-                                                <p className="text-gray-500 text-sm line-clamp-2 mb-6 italic">
+                                                <p className="text-gray-600 text-sm line-clamp-2 mb-6 italic">
                                                     {article.excerpt}
                                                 </p>
                                                 <div className="flex justify-between items-center text-clara-green font-bold text-[10px] uppercase tracking-tighter">
@@ -586,7 +619,7 @@ function App() {
                                 )}
                             </div>
                             {filteredArticles.length === 0 && articles.length > 0 && (
-                                <p className="text-center py-20 italic text-gray-400">
+                                <p className="text-center py-20 italic text-gray-600">
                                     Aucun test dans cette catégorie pour le moment.
                                 </p>
                             )}
@@ -716,7 +749,7 @@ function App() {
                                     signOut(auth);
                                     navigateTo('home');
                                 }}
-                                className="text-gray-400 hover:text-clara-burgundy flex items-center gap-2 font-bold transition"
+                                className="text-gray-600 hover:text-clara-burgundy flex items-center gap-2 font-bold transition"
                             >
                                 <Icon name="LogOut" size={18} /> Quitter
                             </button>
@@ -732,7 +765,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-clara-green text-lg">Statistiques de Visites</h3>
-                                    <p className="text-sm text-gray-500">Ouvrir le tableau de bord complet Umami</p>
+                                    <p className="text-sm text-gray-600">Ouvrir le tableau de bord complet Umami</p>
                                 </div>
                             </button>
                         </div>
@@ -746,7 +779,7 @@ function App() {
                                     {editingId && (
                                         <button
                                             onClick={handleCancelEdit}
-                                            className="text-xs text-gray-500 font-bold hover:text-red-500 uppercase tracking-widest transition"
+                                            className="text-xs text-gray-600 font-bold hover:text-red-500 uppercase tracking-widest transition"
                                         >
                                             Annuler
                                         </button>
@@ -781,7 +814,7 @@ function App() {
                                         required
                                     />
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block mb-1">
+                                        <label className="text-[10px] font-bold uppercase text-gray-600 tracking-widest block mb-1">
                                             Récit du test
                                         </label>
                                         <ReactQuill
@@ -950,11 +983,11 @@ function App() {
                         <div className="text-3xl font-serif font-bold mb-8 cursor-default select-none text-white">
                             LeCh<span onClick={handleAdminTrigger} className="cursor-default hover:text-clara-burgundy transition-colors duration-200">o</span>ixDeClara
                         </div>
-                        <p className="text-gray-400 text-sm italic leading-relaxed max-w-xs">
+                        <p className="text-gray-600 text-sm italic leading-relaxed max-w-xs">
                             "Moi c'est Clara. Je guide les hommes attentionnés dans leur choix de cadeaux pour leur chérie."
                         </p>
                     </div>
-                    <div className="text-gray-500 text-[10px] space-y-4 uppercase tracking-widest font-bold">
+                    <div className="text-gray-600 text-[10px] space-y-4 uppercase tracking-widest font-bold">
                         <div onClick={() => navigateTo('home')} className="hover:text-white transition cursor-pointer">
                             Accueil
                         </div>
@@ -971,9 +1004,9 @@ function App() {
                             Affiliation
                         </div>
                     </div>
-                    <div className="text-gray-400 text-sm">
+                    <div className="text-gray-600 text-sm">
                         <p className="font-bold text-white mb-4 uppercase tracking-widest text-[10px]">Contact</p>
-                        <p className="italic text-gray-500 mb-8 text-xs">nova.iris.kael@gmail.com</p>
+                        <p className="italic text-gray-600 mb-8 text-xs">nova.iris.kael@gmail.com</p>
                         <p className="text-gray-600 text-[10px] mt-4 font-mono">Je guide les hommes attentionnés.</p>
                     </div>
                 </div>
