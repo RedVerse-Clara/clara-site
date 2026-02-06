@@ -4,6 +4,7 @@ import { onAuthStateChanged, signInWithEmailAndPassword, signInAnonymously, sign
 import ReactQuill from 'react-quill';
 import { db, auth, CLARA_APP_ID, ADMIN_UID, UMAMI_SHARE_URL } from './config/firebase';
 import { slugify } from './utils/slugify';
+import { useStructuredData, generateHomeStructuredData } from './utils/structuredData';
 import Icon from './components/Icon';
 import ArticleLayout from './components/ArticleLayout';
 
@@ -126,6 +127,10 @@ function App() {
 
         return () => unsub();
     }, [user]);
+
+    // Données structurées Schema.org pour la page d'accueil
+    useStructuredData(view === 'home' ? generateHomeStructuredData() : null);
+
 
     // Gestion du filtre de catégorie
     const changeCategory = (cat) => {
