@@ -280,13 +280,9 @@ function App() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="h-screen flex items-center justify-center bg-clara-cream font-serif italic text-clara-green">
-                Initialisation...
-            </div>
-        );
-    }
+    // Removed blocking loading screen - content renders immediately while Firebase initializes
+    // This improves SEO (content visible to crawlers) and Core Web Vitals (faster FCP/LCP)
+
 
     return (
         <div className="min-h-screen flex flex-col">
