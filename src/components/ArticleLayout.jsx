@@ -13,14 +13,17 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
         const oldOgTitle = document.querySelector('meta[property="og:title"]').content;
         const oldOgDesc = document.querySelector('meta[property="og:description"]').content;
         const oldOgImage = document.querySelector('meta[property="og:image"]').content;
+        const oldOgUrl = document.querySelector('meta[property="og:url"]').content;
         const oldTwitterTitle = document.querySelector('meta[name="twitter:title"]').content;
         const oldTwitterDesc = document.querySelector('meta[name="twitter:description"]').content;
         const oldTwitterImage = document.querySelector('meta[name="twitter:image"]').content;
+        const oldTwitterUrl = document.querySelector('meta[name="twitter:url"]').content;
 
         // Mise à jour des meta tags
         const newTitle = `${article.title} | Avis de Clara`;
         const newDesc = article.excerpt;
         const newImage = article.imageUrl ? `https://lechoixdeclara.fr/${article.imageUrl}` : 'https://lechoixdeclara.fr/clara-experte-avis-activewear-lechoixdeclara.webp';
+        const newUrl = `https://lechoixdeclara.fr/?a=${article.id}`;
 
         document.title = newTitle;
         document.querySelector('meta[name="description"]').content = newDesc;
@@ -29,11 +32,13 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
         document.querySelector('meta[property="og:title"]').content = newTitle;
         document.querySelector('meta[property="og:description"]').content = newDesc;
         document.querySelector('meta[property="og:image"]').content = newImage;
+        document.querySelector('meta[property="og:url"]').content = newUrl;
 
         // Twitter Card
         document.querySelector('meta[name="twitter:title"]').content = newTitle;
         document.querySelector('meta[name="twitter:description"]').content = newDesc;
         document.querySelector('meta[name="twitter:image"]').content = newImage;
+        document.querySelector('meta[name="twitter:url"]').content = newUrl;
 
         return () => {
             document.title = oldTitle;
@@ -41,9 +46,11 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
             document.querySelector('meta[property="og:title"]').content = oldOgTitle;
             document.querySelector('meta[property="og:description"]').content = oldOgDesc;
             document.querySelector('meta[property="og:image"]').content = oldOgImage;
+            document.querySelector('meta[property="og:url"]').content = oldOgUrl;
             document.querySelector('meta[name="twitter:title"]').content = oldTwitterTitle;
             document.querySelector('meta[name="twitter:description"]').content = oldTwitterDesc;
             document.querySelector('meta[name="twitter:image"]').content = oldTwitterImage;
+            document.querySelector('meta[name="twitter:url"]').content = oldTwitterUrl;
         };
     }, [article]);
 
