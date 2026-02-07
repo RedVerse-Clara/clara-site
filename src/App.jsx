@@ -10,6 +10,7 @@ import { useFocusTrap } from './hooks/useFocusTrap';
 import { useKeyboardShortcut } from './hooks/useKeyboardShortcut';
 import Icon from './components/Icon';
 import ArticleLayout from './components/ArticleLayout';
+import Breadcrumb from './components/Breadcrumb';
 
 function App() {
     // États principaux
@@ -29,6 +30,10 @@ function App() {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // États pagination
+    const [homeDisplayCount, setHomeDisplayCount] = useState(3);
+    const [galleryDisplayCount, setGalleryDisplayCount] = useState(3);
 
     // États admin
     const [secretClicks, setSecretClicks] = useState(0);
@@ -651,7 +656,7 @@ function App() {
                                     ))
                                 ) : (
                                     // Real articles once loaded
-                                    filteredArticles.slice(0, 3).map(article => (
+                                    filteredArticles.slice(0, homeDisplayCount).map(article => (
                                         <div
                                             key={article.id}
                                             onClick={() => navigateTo('article', article)}
@@ -686,6 +691,20 @@ function App() {
                                     ))
                                 )}
                             </div>
+
+                            {/* Bouton "Voir plus" */}
+                            {homeDisplayCount < filteredArticles.length && (
+                                <div className="text-center mt-12">
+                                    <button
+                                        onClick={() => setHomeDisplayCount(prev => prev + 3)}
+                                        className="inline-flex items-center gap-2 px-8 py-4 border-2 border-clara-green text-clara-green rounded-full font-bold hover:bg-clara-green hover:text-white transition-all hover:scale-105"
+                                    >
+                                        <Icon name="Plus" size={20} />
+                                        Voir 3 articles de plus
+                                    </button>
+                                </div>
+                            )}
+
                             {filteredArticles.length === 0 && articles.length > 0 && (
                                 <p className="text-center py-20 italic text-gray-600">
                                     Aucun test dans cette catégorie pour le moment.
@@ -769,6 +788,17 @@ function App() {
                 {/* Page Galerie de Catégories */}
                 {view === 'category-gallery' && (
                     <div className="fade-in">
+                        {/* Breadcrumb */}
+                        <div className="container mx-auto px-6 pt-6">
+                            <Breadcrumb
+                                view={view}
+                                categoryFilter={categoryFilter}
+                                subCategoryFilter={subCategoryFilter}
+                                article={null}
+                                onNavigate={navigateTo}
+                            />
+                        </div>
+
                         {/* Header de la catégorie */}
                         <section className="bg-gradient-to-r from-clara-green to-clara-burgundy py-16 px-6 text-white">
                             <div className="container mx-auto text-center">
@@ -1041,7 +1071,7 @@ function App() {
                                         );
                                     }
 
-                                    return categoryArticles.slice(0, 3).map(article => (
+                                    return categoryArticles.slice(0, galleryDisplayCount).map(article => (
                                         <div
                                             key={article.id}
                                             onClick={() => navigateTo('article', article)}
@@ -1076,6 +1106,30 @@ function App() {
                                     ));
                                 })()}
                             </div>
+
+                            {/* Bouton "Voir plus" pour les galeries */}
+                            {(() => {
+                                const categoryArticles = articles.filter(art => {
+                                    const inCategory = categoryFilter === 'MODE'
+                                        ? ['ACTIVEWEAR', 'LOUNGEWEAR', 'BEACHWEAR'].includes(art.category)
+                                        : ['JEUX_VIDEO', 'TECH', 'COSPLAY'].includes(art.category);
+
+                                    if (subCategoryFilter === 'ALL') return inCategory;
+                                    return art.category === subCategoryFilter;
+                                });
+
+                                return galleryDisplayCount < categoryArticles.length && (
+                                    <div className="text-center mt-12">
+                                        <button
+                                            onClick={() => setGalleryDisplayCount(prev => prev + 3)}
+                                            className="inline-flex items-center gap-2 px-8 py-4 border-2 border-clara-green text-clara-green rounded-full font-bold hover:bg-clara-green hover:text-white transition-all hover:scale-105"
+                                        >
+                                            <Icon name="Plus" size={20} />
+                                            Voir 3 articles de plus
+                                        </button>
+                                    </div>
+                                );
+                            })()}
                         </section>
                     </div>
                 )}
