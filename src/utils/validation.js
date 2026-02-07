@@ -35,7 +35,7 @@ export function validateArticle(article) {
     }
 
     // Catégorie
-    const validCategories = ['MODE', 'GEEK', 'ACTIVEWEAR', 'BEAUTE'];
+    const validCategories = ['ACTIVEWEAR', 'LOUNGEWEAR', 'BEACHWEAR', 'JEUX_VIDEO', 'TECH', 'COSPLAY'];
     if (!article.category || !validCategories.includes(article.category)) {
         errors.push("La catégorie est invalide");
     }

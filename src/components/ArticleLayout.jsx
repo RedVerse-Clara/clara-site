@@ -7,6 +7,41 @@ import { sanitizeHTML } from '../utils/sanitizer';
  * Composant pour afficher un article complet
  */
 export default function ArticleLayout({ article, onBack, allArticles, onNavigate }) {
+    // Fonction pour copier le lien de l'article
+    const handleShareClick = async () => {
+        const articleUrl = `${window.location.origin}/?a=${article.id}`;
+        try {
+            await navigator.clipboard.writeText(articleUrl);
+
+            // Créer le toast directement dans le DOM
+            const toast = document.createElement('div');
+            toast.textContent = '✓ Lien copié !';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #004D40;
+                color: white;
+                padding: 16px 32px;
+                border-radius: 50px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                z-index: 99999;
+                font-size: 16px;
+                font-weight: bold;
+                pointer-events: none;
+            `;
+            document.body.appendChild(toast);
+
+            // Supprimer après 2.5 secondes
+            setTimeout(() => {
+                toast.remove();
+            }, 2500);
+        } catch (err) {
+            console.error('Erreur lors de la copie:', err);
+        }
+    };
+
     // Mise à jour des métadonnées pour le SEO et partage social
     useEffect(() => {
         const oldTitle = document.title;
@@ -91,9 +126,19 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                     <span className="text-clara-burgundy font-bold uppercase tracking-widest text-[10px] mb-4 block">
                         {article.category}
                     </span>
-                    <h1 className="text-4xl md:text-6xl font-serif mb-8 text-clara-green leading-tight">
-                        {article.title}
-                    </h1>
+                    <div className="flex items-start justify-between gap-4 mb-8">
+                        <h1 className="text-4xl md:text-6xl font-serif text-clara-green leading-tight flex-1">
+                            {article.title}
+                        </h1>
+                        <button
+                            onClick={handleShareClick}
+                            className="flex-shrink-0 p-3 rounded-full bg-clara-green/10 hover:bg-clara-green hover:text-white text-clara-green transition-all duration-200 hover:scale-110"
+                            aria-label="Partager l'article"
+                            title="Copier le lien"
+                        >
+                            <Icon name="Share2" size={20} />
+                        </button>
+                    </div>
                     <p className="text-xl italic border-l-4 border-clara-burgundy pl-6 pr-6 py-8 mb-8 bg-white rounded-r-2xl shadow-sm text-gray-700">
                         {article.excerpt}
                     </p>

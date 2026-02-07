@@ -15,6 +15,7 @@ function App() {
     // États principaux
     const [view, setView] = useState('home');
     const [categoryFilter, setCategoryFilter] = useState('ALL');
+    const [subCategoryFilter, setSubCategoryFilter] = useState('ALL');
     const [articles, setArticles] = useState([]);
     const [selectedArticle, setSelectedArticle] = useState(null);
 
@@ -62,6 +63,7 @@ function App() {
         setView(newView);
         setSelectedArticle(article);
         setCategoryFilter(filter);
+        if (newView === 'category-gallery') setSubCategoryFilter('ALL');
 
         let newUrl = window.location.pathname;
         if (newView === 'article' && article) newUrl += `?a=${article.id}`;
@@ -70,6 +72,7 @@ function App() {
         else if (newView === 'affiliation') newUrl += `?p=affiliation`;
         else if (newView === 'legal') newUrl += `?p=legal`;
         else if (newView === 'admin') newUrl += `?p=admin`;
+        else if (newView === 'category-gallery') newUrl += `?cat=${filter}`;
 
         window.history.pushState({ view: newView, article, filter }, '', newUrl);
         window.scrollTo(0, 0);
@@ -81,6 +84,7 @@ function App() {
             const params = new URLSearchParams(window.location.search);
             const artId = params.get('a');
             const page = params.get('p');
+            const cat = params.get('cat');
 
             if (artId && articles.length > 0) {
                 const art = articles.find(a => a.id === artId);
@@ -90,9 +94,11 @@ function App() {
             if (page === 'privacy') { setView('privacy'); return; }
             if (page === 'affiliation') { setView('affiliation'); return; }
             if (page === 'legal') { setView('legal'); return; }
+            if (cat) { setView('category-gallery'); setCategoryFilter(cat); setSubCategoryFilter('ALL'); return; }
 
             setView('home');
             setCategoryFilter('ALL');
+            setSubCategoryFilter('ALL');
             setSelectedArticle(null);
         };
 
@@ -128,6 +134,7 @@ function App() {
             const params = new URLSearchParams(window.location.search);
             const artId = params.get('a');
             const page = params.get('p');
+            const cat = params.get('cat');
 
             if (artId) {
                 const art = sorted.find(a => a.id === artId);
@@ -137,6 +144,7 @@ function App() {
             else if (page === 'affiliation') { setView('affiliation'); }
             else if (page === 'legal') { setView('legal'); }
             else if (page === 'admin') { setView('admin'); }
+            else if (cat) { setView('category-gallery'); setCategoryFilter(cat); setSubCategoryFilter('ALL'); }
         }, (err) => console.error('Firestore error:', err));
 
         return () => unsub();
@@ -325,18 +333,18 @@ function App() {
                         Accueil
                     </button>
                     <button
-                        onClick={() => changeCategory('MODE')}
-                        className={`nav-link ${categoryFilter === 'MODE' ? 'active' : ''}`}
-                        aria-label="Filtrer par catégorie Mode - Le Dressing"
-                        aria-current={categoryFilter === 'MODE' ? 'page' : undefined}
+                        onClick={() => navigateTo('category-gallery', null, 'MODE')}
+                        className={`nav-link ${view === 'category-gallery' && categoryFilter === 'MODE' ? 'active' : ''}`}
+                        aria-label="Voir Le Dressing de Clara"
+                        aria-current={view === 'category-gallery' && categoryFilter === 'MODE' ? 'page' : undefined}
                     >
                         Le Dressing
                     </button>
                     <button
-                        onClick={() => changeCategory('GEEK')}
-                        className={`nav-link ${categoryFilter === 'GEEK' ? 'active' : ''}`}
-                        aria-label="Filtrer par catégorie Geek - Le Coin Geek"
-                        aria-current={categoryFilter === 'GEEK' ? 'page' : undefined}
+                        onClick={() => navigateTo('category-gallery', null, 'GEEK')}
+                        className={`nav-link ${view === 'category-gallery' && categoryFilter === 'GEEK' ? 'active' : ''}`}
+                        aria-label="Voir Le Coin Geek"
+                        aria-current={view === 'category-gallery' && categoryFilter === 'GEEK' ? 'page' : undefined}
                     >
                         Le Coin Geek
                     </button>
@@ -389,16 +397,16 @@ function App() {
                         Accueil
                     </button>
                     <button
-                        onClick={() => { changeCategory('MODE'); setMobileMenuOpen(false); }}
-                        className={`nav-link text-left ${categoryFilter === 'MODE' ? 'active' : ''}`}
-                        aria-label="Filtrer par catégorie Mode"
+                        onClick={() => { navigateTo('category-gallery', null, 'MODE'); setMobileMenuOpen(false); }}
+                        className={`nav-link text-left ${view === 'category-gallery' && categoryFilter === 'MODE' ? 'active' : ''}`}
+                        aria-label="Voir Le Dressing de Clara"
                     >
                         Le Dressing
                     </button>
                     <button
-                        onClick={() => { changeCategory('GEEK'); setMobileMenuOpen(false); }}
-                        className={`nav-link text-left ${categoryFilter === 'GEEK' ? 'active' : ''}`}
-                        aria-label="Filtrer par catégorie Geek"
+                        onClick={() => { navigateTo('category-gallery', null, 'GEEK'); setMobileMenuOpen(false); }}
+                        className={`nav-link text-left ${view === 'category-gallery' && categoryFilter === 'GEEK' ? 'active' : ''}`}
+                        aria-label="Voir Le Coin Geek"
                     >
                         Le Coin Geek
                     </button>
@@ -643,7 +651,7 @@ function App() {
                                     ))
                                 ) : (
                                     // Real articles once loaded
-                                    filteredArticles.map(article => (
+                                    filteredArticles.slice(0, 3).map(article => (
                                         <div
                                             key={article.id}
                                             onClick={() => navigateTo('article', article)}
@@ -683,6 +691,391 @@ function App() {
                                     Aucun test dans cette catégorie pour le moment.
                                 </p>
                             )}
+                        </section>
+
+                        {/* Catégories Principales - Visible uniquement sur page d'accueil (ALL) */}
+                        {categoryFilter === 'ALL' && articles.length > 0 && (
+                            <section className="py-16 px-6 container mx-auto">
+                                <h2 className="text-3xl md:text-4xl font-serif text-clara-green mb-12 text-center">
+                                    Explorer par catégorie
+                                </h2>
+                                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                                    {/* Le Dressing */}
+                                    {(() => {
+                                        const latestMode = articles
+                                            .filter(art => ['ACTIVEWEAR', 'LOUNGEWEAR', 'BEACHWEAR'].includes(art.category))
+                                            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                        return latestMode ? (
+                                            <div
+                                                onClick={() => navigateTo('category-gallery', null, 'MODE')}
+                                                className="category-tile cursor-pointer"
+                                                style={{ aspectRatio: '16/9' }}
+                                                role="button"
+                                                tabIndex="0"
+                                                aria-label="Explorer Le Dressing de Clara"
+                                            >
+                                                <img
+                                                    src={latestMode.imageUrl}
+                                                    alt={latestMode.imageAlt || 'Le Dressing'}
+                                                    className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                />
+                                                <div className="category-tile-overlay">
+                                                    <div>
+                                                        <h3 className="category-tile-title">Le Dressing</h3>
+                                                        <p className="text-white/90 text-sm mt-2">Mode et lifestyle</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : null;
+                                    })()}
+
+                                    {/* Le Coin Geek */}
+                                    {(() => {
+                                        const latestGeek = articles
+                                            .filter(art => ['JEUX_VIDEO', 'TECH', 'COSPLAY'].includes(art.category))
+                                            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                        return latestGeek ? (
+                                            <div
+                                                onClick={() => navigateTo('category-gallery', null, 'GEEK')}
+                                                className="category-tile cursor-pointer"
+                                                style={{ aspectRatio: '16/9' }}
+                                                role="button"
+                                                tabIndex="0"
+                                                aria-label="Explorer Le Coin Geek"
+                                            >
+                                                <img
+                                                    src={latestGeek.imageUrl}
+                                                    alt={latestGeek.imageAlt || 'Le Coin Geek'}
+                                                    className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                />
+                                                <div className="category-tile-overlay">
+                                                    <div>
+                                                        <h3 className="category-tile-title">Le Coin Geek</h3>
+                                                        <p className="text-white/90 text-sm mt-2">Gaming et Tech</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : null;
+                                    })()}
+                                </div>
+                            </section>
+                        )}
+                    </div>
+                )
+                }
+
+                {/* Page Galerie de Catégories */}
+                {view === 'category-gallery' && (
+                    <div className="fade-in">
+                        {/* Header de la catégorie */}
+                        <section className="bg-gradient-to-r from-clara-green to-clara-burgundy py-16 px-6 text-white">
+                            <div className="container mx-auto text-center">
+                                <h1 className="text-4xl md:text-5xl font-serif mb-4">
+                                    {categoryFilter === 'MODE' ? 'Le Dressing de Clara' : 'Le Coin Geek'}
+                                </h1>
+                                <p className="text-lg opacity-90 max-w-2xl mx-auto">
+                                    {categoryFilter === 'MODE'
+                                        ? 'Mode et lifestyle : découvrez mes tests par univers'
+                                        : 'Gaming et Tech : mes tests et découvertes'}
+                                </p>
+                            </div>
+                        </section>
+
+                        {/* Onglets de filtrage */}
+                        <section className="bg-white border-b sticky top-[73px] z-40 shadow-sm">
+                            <div className="container mx-auto px-6 py-4">
+                                <div className="flex gap-2 overflow-x-auto no-scrollbar pr-12 md:pr-6">
+                                    <button
+                                        onClick={() => setSubCategoryFilter('ALL')}
+                                        className={`tab-button ${subCategoryFilter === 'ALL' ? 'active' : ''}`}
+                                        aria-label="Voir tous les articles de cette catégorie"
+                                    >
+                                        Tous
+                                    </button>
+                                    {categoryFilter === 'MODE' && (
+                                        <>
+                                            <button
+                                                onClick={() => setSubCategoryFilter('ACTIVEWEAR')}
+                                                className={`tab-button ${subCategoryFilter === 'ACTIVEWEAR' ? 'active' : ''}`}
+                                                aria-label="Filtrer par Activewear"
+                                            >
+                                                Activewear
+                                            </button>
+                                            <button
+                                                onClick={() => setSubCategoryFilter('LOUNGEWEAR')}
+                                                className={`tab-button ${subCategoryFilter === 'LOUNGEWEAR' ? 'active' : ''}`}
+                                                aria-label="Filtrer par Loungewear"
+                                            >
+                                                Loungewear
+                                            </button>
+                                            <button
+                                                onClick={() => setSubCategoryFilter('BEACHWEAR')}
+                                                className={`tab-button ${subCategoryFilter === 'BEACHWEAR' ? 'active' : ''}`}
+                                                aria-label="Filtrer par Beachwear"
+                                            >
+                                                Beachwear
+                                            </button>
+                                        </>
+                                    )}
+                                    {categoryFilter === 'GEEK' && (
+                                        <>
+                                            <button
+                                                onClick={() => setSubCategoryFilter('JEUX_VIDEO')}
+                                                className={`tab-button ${subCategoryFilter === 'JEUX_VIDEO' ? 'active' : ''}`}
+                                                aria-label="Filtrer par Jeux Vidéos"
+                                            >
+                                                Jeux Vidéos
+                                            </button>
+                                            <button
+                                                onClick={() => setSubCategoryFilter('TECH')}
+                                                className={`tab-button ${subCategoryFilter === 'TECH' ? 'active' : ''}`}
+                                                aria-label="Filtrer par Tech"
+                                            >
+                                                Tech
+                                            </button>
+                                            <button
+                                                onClick={() => setSubCategoryFilter('COSPLAY')}
+                                                className={`tab-button ${subCategoryFilter === 'COSPLAY' ? 'active' : ''}`}
+                                                aria-label="Filtrer par Cosplay"
+                                            >
+                                                Cosplay
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Galerie de tuiles (visible uniquement si ALL) */}
+                        {subCategoryFilter === 'ALL' && (
+                            <section className="container mx-auto px-6 py-16">
+                                <h2 className="text-3xl font-serif text-clara-green mb-8 text-center">
+                                    Explorez par univers
+                                </h2>
+                                <div className="grid md:grid-cols-3 gap-8">
+                                    {categoryFilter === 'MODE' && (
+                                        <>
+                                            {(() => {
+                                                const latestActivewear = articles
+                                                    .filter(art => art.category === 'ACTIVEWEAR')
+                                                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                                return latestActivewear ? (
+                                                    <div
+                                                        onClick={() => setSubCategoryFilter('ACTIVEWEAR')}
+                                                        className="category-tile"
+                                                        role="button"
+                                                        tabIndex="0"
+                                                        aria-label="Voir les articles Activewear"
+                                                    >
+                                                        <img
+                                                            src={latestActivewear.imageUrl}
+                                                            alt={latestActivewear.imageAlt || 'Activewear'}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                        <div className="category-tile-overlay">
+                                                            <h3 className="category-tile-title">Activewear</h3>
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                            {(() => {
+                                                const latestLoungewear = articles
+                                                    .filter(art => art.category === 'LOUNGEWEAR')
+                                                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                                return latestLoungewear ? (
+                                                    <div
+                                                        onClick={() => setSubCategoryFilter('LOUNGEWEAR')}
+                                                        className="category-tile"
+                                                        role="button"
+                                                        tabIndex="0"
+                                                        aria-label="Voir les articles Loungewear"
+                                                    >
+                                                        <img
+                                                            src={latestLoungewear.imageUrl}
+                                                            alt={latestLoungewear.imageAlt || 'Loungewear'}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                        <div className="category-tile-overlay">
+                                                            <h3 className="category-tile-title">Loungewear</h3>
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                            {(() => {
+                                                const latestBeachwear = articles
+                                                    .filter(art => art.category === 'BEACHWEAR')
+                                                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                                return latestBeachwear ? (
+                                                    <div
+                                                        onClick={() => setSubCategoryFilter('BEACHWEAR')}
+                                                        className="category-tile"
+                                                        role="button"
+                                                        tabIndex="0"
+                                                        aria-label="Voir les articles Beachwear"
+                                                    >
+                                                        <img
+                                                            src={latestBeachwear.imageUrl}
+                                                            alt={latestBeachwear.imageAlt || 'Beachwear'}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                        <div className="category-tile-overlay">
+                                                            <h3 className="category-tile-title">Beachwear</h3>
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                        </>
+                                    )}
+                                    {categoryFilter === 'GEEK' && (
+                                        <>
+                                            {(() => {
+                                                const latestJeuxVideo = articles
+                                                    .filter(art => art.category === 'JEUX_VIDEO')
+                                                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                                return latestJeuxVideo ? (
+                                                    <div
+                                                        onClick={() => setSubCategoryFilter('JEUX_VIDEO')}
+                                                        className="category-tile"
+                                                        role="button"
+                                                        tabIndex="0"
+                                                        aria-label="Voir les articles Jeux Vidéos"
+                                                    >
+                                                        <img
+                                                            src={latestJeuxVideo.imageUrl}
+                                                            alt={latestJeuxVideo.imageAlt || 'Jeux Vidéos'}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                        <div className="category-tile-overlay">
+                                                            <h3 className="category-tile-title">Jeux Vidéos</h3>
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                            {(() => {
+                                                const latestTech = articles
+                                                    .filter(art => art.category === 'TECH')
+                                                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                                return latestTech ? (
+                                                    <div
+                                                        onClick={() => setSubCategoryFilter('TECH')}
+                                                        className="category-tile"
+                                                        role="button"
+                                                        tabIndex="0"
+                                                        aria-label="Voir les articles Tech"
+                                                    >
+                                                        <img
+                                                            src={latestTech.imageUrl}
+                                                            alt={latestTech.imageAlt || 'Tech'}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                        <div className="category-tile-overlay">
+                                                            <h3 className="category-tile-title">Tech</h3>
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                            {(() => {
+                                                const latestCosplay = articles
+                                                    .filter(art => art.category === 'COSPLAY')
+                                                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+                                                return latestCosplay ? (
+                                                    <div
+                                                        onClick={() => setSubCategoryFilter('COSPLAY')}
+                                                        className="category-tile"
+                                                        role="button"
+                                                        tabIndex="0"
+                                                        aria-label="Voir les articles Cosplay"
+                                                    >
+                                                        <img
+                                                            src={latestCosplay.imageUrl}
+                                                            alt={latestCosplay.imageAlt || 'Cosplay'}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                        <div className="category-tile-overlay">
+                                                            <h3 className="category-tile-title">Cosplay</h3>
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                        </>
+                                    )}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Liste des articles filtrés */}
+                        <section className="container mx-auto px-6 py-16">
+                            <h2 className="text-3xl font-serif text-clara-green mb-8">
+                                {subCategoryFilter === 'ALL' ? 'Les derniers articles' :
+                                    subCategoryFilter === 'JEUX_VIDEO' ? 'Tests de Jeux Vidéos' :
+                                        subCategoryFilter === 'ACTIVEWEAR' ? 'Activewear' :
+                                            subCategoryFilter === 'LOUNGEWEAR' ? 'Loungewear' :
+                                                subCategoryFilter === 'BEACHWEAR' ? 'Beachwear' :
+                                                    subCategoryFilter === 'TECH' ? 'Tests Tech' :
+                                                        subCategoryFilter === 'COSPLAY' ? 'Cosplay' : ''}
+                            </h2>
+                            <div className="grid md:grid-cols-3 gap-10">
+                                {(() => {
+                                    const categoryArticles = articles.filter(art => {
+                                        const inCategory = categoryFilter === 'MODE'
+                                            ? ['ACTIVEWEAR', 'LOUNGEWEAR', 'BEACHWEAR'].includes(art.category)
+                                            : ['JEUX_VIDEO', 'TECH', 'COSPLAY'].includes(art.category);
+
+                                        if (subCategoryFilter === 'ALL') return inCategory;
+                                        return art.category === subCategoryFilter;
+                                    });
+
+                                    if (categoryArticles.length === 0) {
+                                        return (
+                                            <p className="col-span-3 text-center py-20 italic text-gray-600">
+                                                Aucun article dans cette catégorie pour le moment.
+                                            </p>
+                                        );
+                                    }
+
+                                    return categoryArticles.slice(0, 3).map(article => (
+                                        <div
+                                            key={article.id}
+                                            onClick={() => navigateTo('article', article)}
+                                            className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition group cursor-pointer border border-gray-100 btn-hover"
+                                        >
+                                            <div className="h-64 bg-gray-100 relative overflow-hidden">
+                                                <span className="absolute top-4 left-4 bg-clara-green text-white text-[10px] px-3 py-1 rounded font-bold z-10 uppercase tracking-widest shadow-md">
+                                                    {article.category}
+                                                </span>
+                                                {article.imageUrl && (
+                                                    <img
+                                                        src={article.imageUrl}
+                                                        alt={article.imageAlt || article.title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                        loading="lazy"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="p-8">
+                                                <h3 className="font-serif text-xl mb-4 leading-tight group-hover:text-clara-burgundy transition">
+                                                    {article.title}
+                                                </h3>
+                                                <p className="text-gray-600 text-sm line-clamp-2 mb-6">
+                                                    {article.excerpt}
+                                                </p>
+                                                <div className="flex justify-between items-center text-clara-green font-bold text-[10px] uppercase tracking-tighter">
+                                                    <span>Lire le test complet</span>
+                                                    <Icon name="ChevronRight" size={16} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ));
+                                })()}
+                            </div>
                         </section>
                     </div>
                 )}
@@ -861,11 +1254,16 @@ function App() {
                                             onChange={(e) => setPreviewData({ ...previewData, category: e.target.value })}
                                             className="p-4 border rounded-xl outline-none bg-gray-50"
                                         >
-                                            <option>ACTIVEWEAR</option>
-                                            <option>LOUNGEWEAR</option>
-                                            <option>BEACHWEAR</option>
-                                            <option>GEEK</option>
-                                            <option>TECH</option>
+                                            <optgroup label="Mode - Le Dressing">
+                                                <option>ACTIVEWEAR</option>
+                                                <option>LOUNGEWEAR</option>
+                                                <option>BEACHWEAR</option>
+                                            </optgroup>
+                                            <optgroup label="Geek - Le Coin Geek">
+                                                <option>JEUX_VIDEO</option>
+                                                <option>TECH</option>
+                                                <option>COSPLAY</option>
+                                            </optgroup>
                                         </select>
                                     </div>
                                     <input
