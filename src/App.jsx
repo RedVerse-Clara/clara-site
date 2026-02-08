@@ -11,6 +11,7 @@ import { useKeyboardShortcut } from './hooks/useKeyboardShortcut';
 import Icon from './components/Icon';
 import ArticleLayout from './components/ArticleLayout';
 import Breadcrumb from './components/Breadcrumb';
+import SEO from './components/SEO';
 
 function App() {
     // États principaux
@@ -595,6 +596,11 @@ function App() {
                 {/* Page d'accueil */}
                 {view === 'home' && (
                     <div className="fade-in">
+                        <SEO
+                            title="LeChoixDeClara.fr - Experte en cadeaux femme"
+                            description="Clara, 28 ans, 1m78. Silhouette athlétique. Je guide les hommes attentionnés dans leur choix de cadeaux pour leur chérie avec des tests sans concession."
+                            urlSuffix=""
+                        />
                         <section className="bg-white py-8 md:py-12 px-6 border-b border-gray-50">
                             <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
                                 <div>
@@ -788,6 +794,13 @@ function App() {
                 {/* Page Galerie de Catégories */}
                 {view === 'category-gallery' && (
                     <div className="fade-in">
+                        <SEO
+                            title={categoryFilter === 'MODE' ? 'Le Dressing de Clara - Mode et Activewear' : 'Le Coin Geek de Clara - Tech et Gaming'}
+                            description={categoryFilter === 'MODE'
+                                ? "Découvrez ma sélection mode, activewear et tenues de sport. Mes avis sincères et détaillés pour des cadeaux réussis."
+                                : "Ma sélection Tech, Gaming et Pop Culture. Des idées cadeaux originales pour les geeks et les passionnés."}
+                            urlSuffix={`?cat=${categoryFilter}`}
+                        />
                         {/* Breadcrumb */}
                         <div className="container mx-auto px-6 pt-6">
                             <Breadcrumb
@@ -1147,6 +1160,11 @@ function App() {
                 {/* Page À Propos */}
                 {view === 'about' && (
                     <section className="max-w-4xl mx-auto px-6 py-20 fade-in">
+                        <SEO
+                            title="À Propos - Qui est Clara ?"
+                            description="Découvrez qui se cache derrière LeChoixDeClara.fr. Clara, 28 ans, experte en cadeaux pour elle."
+                            urlSuffix="?p=about"
+                        />
                         <h1 className="text-4xl md:text-6xl font-serif text-clara-green mb-12">
                             À Propos : Qui est Clara ?
                         </h1>
@@ -1182,6 +1200,12 @@ function App() {
                 {/* Page Mentions Légales */}
                 {view === 'legal' && (
                     <section className="max-w-4xl mx-auto px-6 py-20 fade-in">
+                        <SEO
+                            title="Mentions Légales - LeChoixDeClara.fr"
+                            description="Mentions légales, éditeur et hébergement du site LeChoixDeClara.fr"
+                            urlSuffix="?p=legal"
+                            type="website"
+                        />
                         <h1 className="text-4xl font-serif text-clara-green mb-12">Mentions Légales</h1>
                         <div className="html-content space-y-8">
                             <h2>Édition du site</h2>
@@ -1210,6 +1234,12 @@ function App() {
                 {/* Page Confidentialité */}
                 {view === 'privacy' && (
                     <section className="max-w-4xl mx-auto px-6 py-20 fade-in">
+                        <SEO
+                            title="Politique de Confidentialité - LeChoixDeClara.fr"
+                            description="Notre politique de confidentialité et gestion des données personnelles."
+                            urlSuffix="?p=privacy"
+                            type="website"
+                        />
                         <h1 className="text-4xl font-serif text-clara-green mb-12">Politique de Confidentialité</h1>
                         <div className="html-content space-y-8">
                             <h2>Collecte et Cookies</h2>
@@ -1229,6 +1259,12 @@ function App() {
                 {/* Page Affiliation */}
                 {view === 'affiliation' && (
                     <section className="max-w-4xl mx-auto px-6 py-20 fade-in">
+                        <SEO
+                            title="Transparence Affiliation - LeChoixDeClara.fr"
+                            description="Transparence sur nos liens d'affiliation Amazon et Instant Gaming."
+                            urlSuffix="?p=affiliation"
+                            type="website"
+                        />
                         <h1 className="text-4xl font-serif text-clara-green mb-12">Divulgation d'Affiliation</h1>
                         <div className="html-content space-y-8">
                             <h2>Transparence Amazon & Instant Gaming</h2>
