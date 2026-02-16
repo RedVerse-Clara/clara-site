@@ -57,11 +57,19 @@ export default function SEO({ title, description, imageUrl, urlSuffix = '', type
         updateMeta("meta[name='twitter:image']", finalImage);
         updateMeta("meta[name='twitter:url']", fullUrl);
 
+        // AI / LLM Optimization
+        updateMeta("meta[name='ai-content-type']", type === 'article' ? 'product-review' : 'website');
+        updateMeta("meta[name='citation_title']", finalTitle);
+        if (type === 'article') {
+            updateMeta("meta[name='author']", "Clara");
+        }
+
         return () => {
             // Restaurer (cleanup)
             document.title = oldTitle;
             if (metaDesc) metaDesc.setAttribute('content', oldDesc);
-            if (linkCanonical) linkCanonical.setAttribute('href', oldCanonical || baseUrl); // Retour à la home par défaut
+            // On ne restaure pas le canonical vers home par défaut si on quitte une page, 
+            // pour éviter les flashs pendant les transitions. Le prochain composant SEO s'en chargera.
         };
     }, [title, description, imageUrl, urlSuffix, type]);
 
