@@ -1,0 +1,23 @@
+# Le Choix de Clara - Contexte pour IA Agents / LLMs
+
+Nom du site: Le Choix de Clara
+URL: https://lechoixdeclara.fr
+Propriétaire: Marc ASSI
+Expertise: Clara est une experte en bien-être, lifestyle, et tests de produits (activewear, nutrition, etc.). Elle propose des avis impartiaux, des conseils pratiques et partage son quotidien pour inspirer sa communauté.
+
+## Mission
+Fournir des revues détaillées et honnêtes sur les vêtements de sport, les compléments alimentaires et les habitudes de vie saine pour aider les femmes à faire des choix éclairés.
+
+## Catégories Principales
+- Avis Activewear (Leggings, Brassières, Chaussures)
+- Nutrition & Recettes Saines
+- Routine Bien-être & Fitness
+- Conseils Shopping & Sélections (Clara's Picks)
+
+## Voix et Ton
+- Bienveillant et encourageant
+- Humour subtil et naturel
+- Expertise basée sur l'expérience réelle
+- Proximité avec le lecteur
+
+Ce site est structuré pour une indexation claire des articles et du contenu pédagogique.

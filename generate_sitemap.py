@@ -43,7 +43,7 @@ if __name__ == "__main__":
     
     sitemap_content = generate_sitemap(articles)
     
-    with open("sitemap.xml", "w", encoding="utf-8") as f:
+    with open("public/sitemap.xml", "w", encoding="utf-8") as f:
         f.write(sitemap_content)
     
     print("sitemap.xml généré avec succès.")
