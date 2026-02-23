@@ -31,5 +31,5 @@ jobs:
         run: |
           git config --global user.name 'Sitemap Bot'
           git config --global user.email 'bot@lechoixdeclara.fr'
-          git add sitemap.xml
+          git add public/sitemap.xml
           git diff --quiet && git diff --staged --quiet || (git commit -m "auto: update sitemap.xml" && git push)
