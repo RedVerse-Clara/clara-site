@@ -120,7 +120,7 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                 )}
 
                 <div
-                    className="prose prose-lg max-w-none mb-12 leading-relaxed"
+                    className="prose prose-lg max-w-none mb-12 leading-relaxed html-content"
                     dangerouslySetInnerHTML={{ __html: sanitizeHTML(article.content || "") }}
                 />
 
