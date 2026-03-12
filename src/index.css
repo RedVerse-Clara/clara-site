@@ -238,9 +238,9 @@ body {
   color: #6B0D0D;
 }
 
-/* Prose (Tailwind) - Text Justification and Heading Styles */
+/* Prose (Tailwind) - Heading Styles */
 .prose p {
-  text-align: justify;
+  text-align: left;
   word-break: normal;
   overflow-wrap: break-word;
 }
