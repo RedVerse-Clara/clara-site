@@ -64,6 +64,26 @@ function App() {
         if (showStatsModal) setShowStatsModal(false);
     }, showStatsModal);
 
+    // Helper pour obtenir le slug d'un article
+    const getArticleSlug = (article) => article.slug || slugify(article.title);
+
+    // Helper pour trouver un article par slug (avec fallback par ID)
+    const findArticleBySlug = (slug, list) =>
+        list.find(a => (a.slug || slugify(a.title)) === slug) || list.find(a => a.id === slug);
+
+    // Helper pour convertir un pathname en vue
+    const parsePathname = (pathname) => {
+        if (pathname === '/about') return { view: 'about' };
+        if (pathname === '/privacy') return { view: 'privacy' };
+        if (pathname === '/affiliation') return { view: 'affiliation' };
+        if (pathname === '/legal') return { view: 'legal' };
+        if (pathname === '/admin') return { view: 'admin' };
+        if (pathname === '/le-dressing') return { view: 'category-gallery', filter: 'MODE' };
+        if (pathname === '/le-coin-geek') return { view: 'category-gallery', filter: 'GEEK' };
+        if (pathname.startsWith('/article/')) return { view: 'article', slug: decodeURIComponent(pathname.replace('/article/', '')) };
+        return { view: 'home' };
+    };
+
     // Navigation avec gestion de l'historique
     const navigateTo = (newView, article = null, filter = 'ALL') => {
         setView(newView);
@@ -71,14 +91,14 @@ function App() {
         setCategoryFilter(filter);
         if (newView === 'category-gallery') setSubCategoryFilter('ALL');
 
-        let newUrl = window.location.pathname;
-        if (newView === 'article' && article) newUrl += `?a=${article.id}`;
-        else if (newView === 'about') newUrl += `?p=about`;
-        else if (newView === 'privacy') newUrl += `?p=privacy`;
-        else if (newView === 'affiliation') newUrl += `?p=affiliation`;
-        else if (newView === 'legal') newUrl += `?p=legal`;
-        else if (newView === 'admin') newUrl += `?p=admin`;
-        else if (newView === 'category-gallery') newUrl += `?cat=${filter}`;
+        let newUrl = '/';
+        if (newView === 'article' && article) newUrl = `/article/${getArticleSlug(article)}`;
+        else if (newView === 'about') newUrl = '/about';
+        else if (newView === 'privacy') newUrl = '/privacy';
+        else if (newView === 'affiliation') newUrl = '/affiliation';
+        else if (newView === 'legal') newUrl = '/legal';
+        else if (newView === 'admin') newUrl = '/admin';
+        else if (newView === 'category-gallery') newUrl = filter === 'MODE' ? '/le-dressing' : '/le-coin-geek';
 
         window.history.pushState({ view: newView, article, filter }, '', newUrl);
         window.scrollTo(0, 0);
@@ -87,20 +107,17 @@ function App() {
     // Gestion du bouton retour du navigateur
     useEffect(() => {
         const handlePopState = () => {
-            const params = new URLSearchParams(window.location.search);
-            const artId = params.get('a');
-            const page = params.get('p');
-            const cat = params.get('cat');
+            const parsed = parsePathname(window.location.pathname);
 
-            if (artId && articles.length > 0) {
-                const art = articles.find(a => a.id === artId);
+            if (parsed.view === 'article' && parsed.slug && articles.length > 0) {
+                const art = findArticleBySlug(parsed.slug, articles);
                 if (art) { setView('article'); setSelectedArticle(art); return; }
             }
-            if (page === 'about') { setView('about'); return; }
-            if (page === 'privacy') { setView('privacy'); return; }
-            if (page === 'affiliation') { setView('affiliation'); return; }
-            if (page === 'legal') { setView('legal'); return; }
-            if (cat) { setView('category-gallery'); setCategoryFilter(cat); setSubCategoryFilter('ALL'); return; }
+            if (parsed.view === 'about') { setView('about'); return; }
+            if (parsed.view === 'privacy') { setView('privacy'); return; }
+            if (parsed.view === 'affiliation') { setView('affiliation'); return; }
+            if (parsed.view === 'legal') { setView('legal'); return; }
+            if (parsed.view === 'category-gallery') { setView('category-gallery'); setCategoryFilter(parsed.filter); setSubCategoryFilter('ALL'); return; }
 
             setView('home');
             setCategoryFilter('ALL');
@@ -136,21 +153,40 @@ function App() {
             const sorted = docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setArticles(sorted);
 
-            // Gestion de l'URL initiale
+            // Gestion de l'URL initiale — support des nouvelles URLs + rétro-compatibilité query params
             const params = new URLSearchParams(window.location.search);
             const artId = params.get('a');
             const page = params.get('p');
             const cat = params.get('cat');
 
+            // Rétro-compatibilité : redirection des anciennes URLs query params vers les nouvelles
             if (artId) {
                 const art = sorted.find(a => a.id === artId);
-                if (art) { setView('article'); setSelectedArticle(art); }
-            } else if (page === 'about') { setView('about'); }
-            else if (page === 'privacy') { setView('privacy'); }
-            else if (page === 'affiliation') { setView('affiliation'); }
-            else if (page === 'legal') { setView('legal'); }
-            else if (page === 'admin') { setView('admin'); }
-            else if (cat) { setView('category-gallery'); setCategoryFilter(cat); setSubCategoryFilter('ALL'); }
+                if (art) {
+                    setView('article'); setSelectedArticle(art);
+                    window.history.replaceState(null, '', `/article/${art.slug || slugify(art.title)}`);
+                }
+            } else if (page === 'about') { setView('about'); window.history.replaceState(null, '', '/about'); }
+            else if (page === 'privacy') { setView('privacy'); window.history.replaceState(null, '', '/privacy'); }
+            else if (page === 'affiliation') { setView('affiliation'); window.history.replaceState(null, '', '/affiliation'); }
+            else if (page === 'legal') { setView('legal'); window.history.replaceState(null, '', '/legal'); }
+            else if (page === 'admin') { setView('admin'); window.history.replaceState(null, '', '/admin'); }
+            else if (cat) {
+                setView('category-gallery'); setCategoryFilter(cat); setSubCategoryFilter('ALL');
+                window.history.replaceState(null, '', cat === 'MODE' ? '/le-dressing' : '/le-coin-geek');
+            }
+            // Nouvelles URLs path-based
+            else {
+                const parsed = parsePathname(window.location.pathname);
+                if (parsed.view === 'article' && parsed.slug) {
+                    const art = findArticleBySlug(parsed.slug, sorted);
+                    if (art) { setView('article'); setSelectedArticle(art); }
+                } else if (parsed.view === 'category-gallery') {
+                    setView('category-gallery'); setCategoryFilter(parsed.filter); setSubCategoryFilter('ALL');
+                } else if (parsed.view !== 'home') {
+                    setView(parsed.view);
+                }
+            }
         }, (err) => console.error('Firestore error:', err));
 
         return () => unsub();
@@ -799,7 +835,7 @@ function App() {
                             description={categoryFilter === 'MODE'
                                 ? "Découvrez ma sélection mode, activewear et tenues de sport. Mes avis sincères et détaillés pour des cadeaux réussis."
                                 : "Ma sélection Tech, Gaming et Pop Culture. Des idées cadeaux originales pour les geeks et les passionnés."}
-                            urlSuffix={`?cat=${categoryFilter}`}
+                            urlSuffix={categoryFilter === 'MODE' ? 'le-dressing' : 'le-coin-geek'}
                         />
                         {/* Breadcrumb */}
                         <div className="container mx-auto px-6 pt-6">
@@ -1163,7 +1199,7 @@ function App() {
                         <SEO
                             title="À Propos - Qui est Clara ?"
                             description="Découvrez qui se cache derrière LeChoixDeClara.fr. Clara, 28 ans, experte en cadeaux pour elle."
-                            urlSuffix="?p=about"
+                            urlSuffix="about"
                         />
                         <h1 className="text-4xl md:text-6xl font-serif text-clara-green mb-12">
                             À Propos : Qui est Clara ?
@@ -1203,7 +1239,7 @@ function App() {
                         <SEO
                             title="Mentions Légales - LeChoixDeClara.fr"
                             description="Mentions légales, éditeur et hébergement du site LeChoixDeClara.fr"
-                            urlSuffix="?p=legal"
+                            urlSuffix="legal"
                             type="website"
                         />
                         <h1 className="text-4xl font-serif text-clara-green mb-12">Mentions Légales</h1>
@@ -1237,7 +1273,7 @@ function App() {
                         <SEO
                             title="Politique de Confidentialité - LeChoixDeClara.fr"
                             description="Notre politique de confidentialité et gestion des données personnelles."
-                            urlSuffix="?p=privacy"
+                            urlSuffix="privacy"
                             type="website"
                         />
                         <h1 className="text-4xl font-serif text-clara-green mb-12">Politique de Confidentialité</h1>
@@ -1262,7 +1298,7 @@ function App() {
                         <SEO
                             title="Transparence Affiliation - LeChoixDeClara.fr"
                             description="Transparence sur nos liens d'affiliation Amazon et Instant Gaming."
-                            urlSuffix="?p=affiliation"
+                            urlSuffix="affiliation"
                             type="website"
                         />
                         <h1 className="text-4xl font-serif text-clara-green mb-12">Divulgation d'Affiliation</h1>

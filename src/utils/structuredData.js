@@ -37,6 +37,9 @@ export function useStructuredData(data) {
  * Génère les données structurées pour un article (Review)
  */
 export function generateArticleStructuredData(article) {
+    // Import dynamique évité — on utilise une version inline de slugify
+    const slug = article.slug || article.title.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+
     return {
         "@context": "https://schema.org",
         "@type": "Review",
@@ -44,7 +47,8 @@ export function generateArticleStructuredData(article) {
             "@type": "Product",
             "name": article.title,
             "image": article.imageUrl ? `https://lechoixdeclara.fr/${article.imageUrl}` : undefined,
-            "description": article.excerpt
+            "description": article.excerpt,
+            "url": `https://lechoixdeclara.fr/article/${slug}`
         },
         "author": {
             "@type": "Person",
@@ -57,7 +61,8 @@ export function generateArticleStructuredData(article) {
             "url": "https://lechoixdeclara.fr"
         },
         "reviewBody": article.excerpt,
-        "datePublished": article.createdAt ? new Date(article.createdAt).toISOString() : undefined
+        "datePublished": article.createdAt ? new Date(article.createdAt).toISOString() : undefined,
+        "url": `https://lechoixdeclara.fr/article/${slug}`
     };
 }
 

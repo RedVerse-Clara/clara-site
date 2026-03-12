@@ -2,6 +2,7 @@ import Icon from './Icon';
 import SEO from './SEO';
 import { useStructuredData, generateArticleStructuredData } from '../utils/structuredData';
 import { sanitizeHTML } from '../utils/sanitizer';
+import { slugify } from '../utils/slugify';
 
 /**
  * Composant pour afficher un article complet
@@ -9,7 +10,7 @@ import { sanitizeHTML } from '../utils/sanitizer';
 export default function ArticleLayout({ article, onBack, allArticles, onNavigate }) {
     // Fonction pour copier le lien de l'article
     const handleShareClick = async () => {
-        const articleUrl = `${window.location.origin}/?a=${article.id}`;
+        const articleUrl = `${window.location.origin}/article/${article.slug || slugify(article.title)}`;
         try {
             await navigator.clipboard.writeText(articleUrl);
 
@@ -72,7 +73,7 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                 title={article.title}
                 description={article.excerpt}
                 imageUrl={article.imageUrl ? `https://lechoixdeclara.fr/${article.imageUrl}` : undefined}
-                urlSuffix={`?a=${article.id}`}
+                urlSuffix={`article/${article.slug || slugify(article.title)}`}
                 type="article"
             />
             <button
