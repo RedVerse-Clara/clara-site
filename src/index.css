@@ -198,10 +198,7 @@ body {
   margin-bottom: 1.5rem;
   line-height: 1.8;
   color: #374151;
-  text-align: justify;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  -ms-hyphens: auto;
+  text-align: left;
 }
 
 .html-content img {
