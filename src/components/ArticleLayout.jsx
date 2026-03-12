@@ -101,6 +101,16 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                             <Icon name="Share2" size={20} />
                         </button>
                     </div>
+
+                    {article.imageUrl && (
+                        <img
+                            src={article.imageUrl}
+                            alt={article.imageAlt || article.title}
+                            className="w-full rounded-3xl mb-10 shadow-2xl border-8 border-white"
+                            loading="eager"
+                        />
+                    )}
+
                     <p className="text-xl italic border-l-4 border-clara-burgundy pl-6 pr-6 py-8 mb-8 bg-white rounded-r-2xl shadow-sm text-gray-700">
                         {article.excerpt}
                     </p>
@@ -110,15 +120,6 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                         <AffiliateButton />
                     </div>
                 </header>
-
-                {article.imageUrl && (
-                    <img
-                        src={article.imageUrl}
-                        alt={article.imageAlt || article.title}
-                        className="w-full rounded-3xl mb-12 shadow-2xl border-8 border-white"
-                        loading="lazy"
-                    />
-                )}
 
                 <div
                     className="prose prose-lg max-w-none mb-12 leading-relaxed html-content"
