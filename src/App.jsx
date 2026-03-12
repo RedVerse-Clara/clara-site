@@ -13,13 +13,49 @@ import ArticleLayout from './components/ArticleLayout';
 import Breadcrumb from './components/Breadcrumb';
 import SEO from './components/SEO';
 
+// Parser l'URL initiale en dehors du composant (exécuté une seule fois au chargement)
+function getInitialRoute() {
+    // Vérifier d'abord les anciens query params (rétro-compatibilité)
+    const params = new URLSearchParams(window.location.search);
+    const artId = params.get('a');
+    const page = params.get('p');
+    const cat = params.get('cat');
+
+    if (artId) return { view: 'article', pendingArticleId: artId };
+    if (page === 'about') return { view: 'about' };
+    if (page === 'privacy') return { view: 'privacy' };
+    if (page === 'affiliation') return { view: 'affiliation' };
+    if (page === 'legal') return { view: 'legal' };
+    if (page === 'admin') return { view: 'admin' };
+    if (cat) return { view: 'category-gallery', filter: cat };
+
+    // Nouvelles URLs path-based
+    const rawPathname = window.location.pathname;
+    const pathname = rawPathname.length > 1 ? rawPathname.replace(/\/+$/, '') : rawPathname;
+    if (pathname === '/about') return { view: 'about' };
+    if (pathname === '/privacy') return { view: 'privacy' };
+    if (pathname === '/affiliation') return { view: 'affiliation' };
+    if (pathname === '/legal') return { view: 'legal' };
+    if (pathname === '/admin') return { view: 'admin' };
+    if (pathname === '/le-dressing') return { view: 'category-gallery', filter: 'MODE' };
+    if (pathname === '/le-coin-geek') return { view: 'category-gallery', filter: 'GEEK' };
+    if (pathname.startsWith('/article/')) return { view: 'article', pendingSlug: decodeURIComponent(pathname.replace('/article/', '')) };
+
+    return { view: 'home' };
+}
+
+const initialRoute = getInitialRoute();
+
 function App() {
-    // États principaux
-    const [view, setView] = useState('home');
-    const [categoryFilter, setCategoryFilter] = useState('ALL');
+    // États principaux — initialisés à partir de l'URL
+    const [view, setView] = useState(initialRoute.view);
+    const [categoryFilter, setCategoryFilter] = useState(initialRoute.filter || 'ALL');
     const [subCategoryFilter, setSubCategoryFilter] = useState('ALL');
     const [articles, setArticles] = useState([]);
     const [selectedArticle, setSelectedArticle] = useState(null);
+
+    // Slug ou ID d'article en attente de résolution (quand les articles arrivent de Firestore)
+    const pendingArticleRef = useRef(initialRoute.pendingSlug || initialRoute.pendingArticleId || null);
 
     // États Firebase
     const [user, setUser] = useState(null);
@@ -155,38 +191,23 @@ function App() {
             const sorted = docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setArticles(sorted);
 
-            // Gestion de l'URL initiale — support des nouvelles URLs + rétro-compatibilité query params
-            const params = new URLSearchParams(window.location.search);
-            const artId = params.get('a');
-            const page = params.get('p');
-            const cat = params.get('cat');
+            // Résolution de l'article en attente (premier chargement depuis URL directe)
+            if (pendingArticleRef.current) {
+                const pending = pendingArticleRef.current;
+                pendingArticleRef.current = null; // Ne résoudre qu'une seule fois
 
-            // Rétro-compatibilité : redirection des anciennes URLs query params vers les nouvelles
-            if (artId) {
-                const art = sorted.find(a => a.id === artId);
+                // Chercher par slug OU par ID (rétro-compatibilité ?a=xxx)
+                const art = findArticleBySlug(pending, sorted);
                 if (art) {
-                    setView('article'); setSelectedArticle(art);
-                    window.history.replaceState(null, '', `/article/${art.slug || slugify(art.title)}`);
-                }
-            } else if (page === 'about') { setView('about'); window.history.replaceState(null, '', '/about'); }
-            else if (page === 'privacy') { setView('privacy'); window.history.replaceState(null, '', '/privacy'); }
-            else if (page === 'affiliation') { setView('affiliation'); window.history.replaceState(null, '', '/affiliation'); }
-            else if (page === 'legal') { setView('legal'); window.history.replaceState(null, '', '/legal'); }
-            else if (page === 'admin') { setView('admin'); window.history.replaceState(null, '', '/admin'); }
-            else if (cat) {
-                setView('category-gallery'); setCategoryFilter(cat); setSubCategoryFilter('ALL');
-                window.history.replaceState(null, '', cat === 'MODE' ? '/le-dressing' : '/le-coin-geek');
-            }
-            // Nouvelles URLs path-based
-            else {
-                const parsed = parsePathname(window.location.pathname);
-                if (parsed.view === 'article' && parsed.slug) {
-                    const art = findArticleBySlug(parsed.slug, sorted);
-                    if (art) { setView('article'); setSelectedArticle(art); }
-                } else if (parsed.view === 'category-gallery') {
-                    setView('category-gallery'); setCategoryFilter(parsed.filter); setSubCategoryFilter('ALL');
-                } else if (parsed.view !== 'home') {
-                    setView(parsed.view);
+                    setSelectedArticle(art);
+                    // Réécrire l'URL proprement (utile pour les anciens liens ?a=xxx)
+                    const cleanUrl = `/article/${art.slug || slugify(art.title)}`;
+                    if (window.location.pathname !== cleanUrl) {
+                        window.history.replaceState(null, '', cleanUrl);
+                    }
+                } else {
+                    // Article non trouvé — retour à l'accueil
+                    setView('home');
                 }
             }
         }, (err) => console.error('Firestore error:', err));
