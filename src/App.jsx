@@ -72,7 +72,9 @@ function App() {
         list.find(a => (a.slug || slugify(a.title)) === slug) || list.find(a => a.id === slug);
 
     // Helper pour convertir un pathname en vue
-    const parsePathname = (pathname) => {
+    const parsePathname = (rawPathname) => {
+        // Normaliser : retirer le trailing slash (GitHub Pages en ajoute un)
+        const pathname = rawPathname.length > 1 ? rawPathname.replace(/\/+$/, '') : rawPathname;
         if (pathname === '/about') return { view: 'about' };
         if (pathname === '/privacy') return { view: 'privacy' };
         if (pathname === '/affiliation') return { view: 'affiliation' };
