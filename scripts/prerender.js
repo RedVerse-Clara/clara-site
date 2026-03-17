@@ -298,7 +298,23 @@ async function main() {
         writePage(`article/${slug}`, html);
     }
 
-    // 3. Générer sitemap.xml
+    // 3. Injecter le script de redirection des anciennes URLs dans index.html
+    console.log('\n🔀 Redirection des anciennes URLs :');
+    const articleIdToSlug = {};
+    for (const article of articles) {
+        const slug = article.slug || slugify(article.title);
+        articleIdToSlug[article.id] = slug;
+    }
+
+    const redirectScript = `<script>(function(){var p=new URLSearchParams(window.location.search);var a=p.get("a");var pg=p.get("p");var r={about:"/about",privacy:"/privacy",affiliation:"/affiliation",legal:"/legal",admin:"/admin"};var m=${JSON.stringify(articleIdToSlug)};if(pg&&r[pg]){window.location.replace(r[pg]);}else if(a&&m[a]){window.location.replace("/article/"+m[a]);}})();</script>`;
+
+    const indexPath = join(DIST_DIR, 'index.html');
+    let indexHtml = readFileSync(indexPath, 'utf-8');
+    indexHtml = indexHtml.replace('</head>', `${redirectScript}\n</head>`);
+    writeFileSync(indexPath, indexHtml, 'utf-8');
+    console.log(`  ✓ Script de redirection injecté (${Object.keys(articleIdToSlug).length} articles mappés)`);
+
+    // 4. Générer sitemap.xml
     console.log('\n🗺️  Sitemap :');
     const sitemap = generateSitemap(articles);
     writeFileSync(join(DIST_DIR, 'sitemap.xml'), sitemap, 'utf-8');
@@ -308,10 +324,11 @@ async function main() {
     writeFileSync(join(__dirname, '..', 'public', 'sitemap.xml'), sitemap, 'utf-8');
     console.log('  ✓ public/sitemap.xml (source)');
 
-    // 4. Copier index.html vers 404.html (GitHub Pages SPA fallback)
-    const indexHtml = readFileSync(join(DIST_DIR, 'index.html'), 'utf-8');
-    writeFileSync(join(DIST_DIR, '404.html'), indexHtml, 'utf-8');
-    console.log('\n🔄 404.html créé (fallback SPA pour GitHub Pages)');
+    // 5. Copier index.html vers 404.html (GitHub Pages SPA fallback) avec noindex
+    let notFoundHtml = readFileSync(indexPath, 'utf-8');
+    notFoundHtml = notFoundHtml.replace('</head>', '<meta name="robots" content="noindex">\n</head>');
+    writeFileSync(join(DIST_DIR, '404.html'), notFoundHtml, 'utf-8');
+    console.log('\n🔄 404.html créé (fallback SPA + noindex pour éviter les doublons)');
 
     console.log('\n✅ Pre-rendering terminé avec succès !');
 }
