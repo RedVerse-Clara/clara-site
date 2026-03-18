@@ -1382,18 +1382,20 @@ function App() {
                                     <p className="text-sm text-gray-600">Ouvrir le tableau de bord complet Umami</p>
                                 </div>
                             </button>
-                            <button
-                                onClick={() => setShowInstaModal(true)}
-                                className="bg-white p-6 rounded-3xl shadow-sm border border-purple-300/30 flex items-center gap-4 hover:border-purple-400 transition flex-1"
-                            >
-                                <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-4 rounded-2xl text-white">
-                                    <Icon name="Camera" size={32} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-purple-700 text-lg">Post Instagram</h3>
-                                    <p className="text-sm text-gray-600">Générer et publier du contenu Instagram</p>
-                                </div>
-                            </button>
+                            {window.location.hostname === 'localhost' && (
+                                <button
+                                    onClick={() => setShowInstaModal(true)}
+                                    className="bg-white p-6 rounded-3xl shadow-sm border border-purple-300/30 flex items-center gap-4 hover:border-purple-400 transition flex-1"
+                                >
+                                    <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-4 rounded-2xl text-white">
+                                        <Icon name="Camera" size={32} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-purple-700 text-lg">Post Instagram</h3>
+                                        <p className="text-sm text-gray-600">Générer et publier du contenu Instagram</p>
+                                    </div>
+                                </button>
+                            )}
                         </div>
 
                         <div className="grid lg:grid-cols-2 gap-12 items-start">

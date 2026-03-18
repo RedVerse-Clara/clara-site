@@ -250,6 +250,24 @@ export default function InstagramModal({ show, onClose, articles, db, appId }) {
         await loadData();
     }
 
+    async function handleClearHistory() {
+        if (!window.confirm('Effacer tout l\'historique Instagram ? Cette action est irréversible.')) return;
+        try {
+            const q = query(getPostsCol());
+            const snap = await getDocs(q);
+            const { deleteDoc } = await import('firebase/firestore');
+            const deletes = snap.docs.map(d => deleteDoc(d.ref));
+            await Promise.all(deletes);
+            // Reset meta
+            await setDoc(getMetaRef(), { currentCycle: 1, usedInCurrentCycle: [], totalPostsCount: 0 });
+            setMeta({ currentCycle: 1, usedInCurrentCycle: [], totalPostsCount: 0 });
+            setPostHistory([]);
+            showCopyFeedback('Historique effacé !');
+        } catch (err) {
+            showCopyFeedback(`Erreur : ${err.message}`);
+        }
+    }
+
     function showCopyFeedback(msg) {
         setCopyFeedback(msg);
         setTimeout(() => setCopyFeedback(''), 2000);
@@ -592,13 +610,24 @@ export default function InstagramModal({ show, onClose, articles, db, appId }) {
 
                 {/* Footer — History */}
                 <div className="border-t bg-gray-50">
-                    <button
-                        onClick={() => setShowHistory(!showHistory)}
-                        className="w-full px-5 py-3 text-sm font-bold text-gray-600 hover:text-gray-900 transition flex items-center gap-2"
-                    >
-                        <Icon name={showHistory ? 'ChevronDown' : 'ChevronRight'} size={14} />
-                        Historique ({postHistory.length} post{postHistory.length > 1 ? 's' : ''})
-                    </button>
+                    <div className="flex items-center">
+                        <button
+                            onClick={() => setShowHistory(!showHistory)}
+                            className="flex-1 px-5 py-3 text-sm font-bold text-gray-600 hover:text-gray-900 transition flex items-center gap-2"
+                        >
+                            <Icon name={showHistory ? 'ChevronDown' : 'ChevronRight'} size={14} />
+                            Historique ({postHistory.length} post{postHistory.length > 1 ? 's' : ''})
+                        </button>
+                        {postHistory.length > 0 && (
+                            <button
+                                onClick={handleClearHistory}
+                                className="px-4 py-1.5 mr-4 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition"
+                            >
+                                <Icon name="Trash2" size={12} className="inline mr-1" />
+                                Effacer
+                            </button>
+                        )}
+                    </div>
                     {showHistory && postHistory.length > 0 && (
                         <div className="px-5 pb-4 max-h-48 overflow-y-auto">
                             <div className="space-y-2">
