@@ -12,6 +12,7 @@ import Icon from './components/Icon';
 import ArticleLayout from './components/ArticleLayout';
 import Breadcrumb from './components/Breadcrumb';
 import SEO from './components/SEO';
+import InstagramModal from './components/InstagramModal';
 
 // Parser l'URL initiale en dehors du composant (exécuté une seule fois au chargement)
 function getInitialRoute() {
@@ -67,6 +68,7 @@ function App() {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [showInstaModal, setShowInstaModal] = useState(false);
 
     // États pagination
     const [homeDisplayCount, setHomeDisplayCount] = useState(3);
@@ -98,7 +100,8 @@ function App() {
     // Fermer les modals avec Escape
     useKeyboardShortcut('Escape', () => {
         if (showStatsModal) setShowStatsModal(false);
-    }, showStatsModal);
+        if (showInstaModal) setShowInstaModal(false);
+    }, showStatsModal || showInstaModal);
 
     // Helper pour obtenir le slug d'un article
     const getArticleSlug = (article) => article.slug || slugify(article.title);
@@ -528,6 +531,15 @@ function App() {
                     </div>
                 </div>
             )}
+
+            {/* Modal Instagram */}
+            <InstagramModal
+                show={showInstaModal}
+                onClose={() => setShowInstaModal(false)}
+                articles={articles}
+                db={db}
+                appId={CLARA_APP_ID}
+            />
 
             {/* Modal Image */}
             {showImageModal && (
@@ -1368,6 +1380,18 @@ function App() {
                                 <div>
                                     <h3 className="font-bold text-clara-green text-lg">Statistiques de Visites</h3>
                                     <p className="text-sm text-gray-600">Ouvrir le tableau de bord complet Umami</p>
+                                </div>
+                            </button>
+                            <button
+                                onClick={() => setShowInstaModal(true)}
+                                className="bg-white p-6 rounded-3xl shadow-sm border border-purple-300/30 flex items-center gap-4 hover:border-purple-400 transition flex-1"
+                            >
+                                <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-4 rounded-2xl text-white">
+                                    <Icon name="Camera" size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-purple-700 text-lg">Post Instagram</h3>
+                                    <p className="text-sm text-gray-600">Générer et publier du contenu Instagram</p>
                                 </div>
                             </button>
                         </div>
