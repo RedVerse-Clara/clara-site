@@ -306,11 +306,15 @@ async function main() {
         articleIdToSlug[article.id] = slug;
     }
 
-    const redirectScript = `<script>(function(){var p=new URLSearchParams(window.location.search);var a=p.get("a");var pg=p.get("p");var r={about:"/about",privacy:"/privacy",affiliation:"/affiliation",legal:"/legal",admin:"/admin"};var m=${JSON.stringify(articleIdToSlug)};if(pg&&r[pg]){window.location.replace(r[pg]);}else if(a&&m[a]){window.location.replace("/article/"+m[a]);}})();</script>`;
+    const redirectScript = `<script>(function(){var p=new URLSearchParams(window.location.search);var a=p.get("a");var pg=p.get("p");var r={about:"/about",privacy:"/privacy",affiliation:"/affiliation",legal:"/legal",admin:"/admin"};var m=${JSON.stringify(articleIdToSlug)};var dest;if(pg&&r[pg]){dest=r[pg];}else if(a&&m[a]){dest="/article/"+m[a];}if(dest){var c=document.querySelector('link[rel="canonical"]');if(c)c.href="https://lechoixdeclara.fr"+dest;window.location.replace(dest);}})();</script>`;
 
     const indexPath = join(DIST_DIR, 'index.html');
     let indexHtml = readFileSync(indexPath, 'utf-8');
-    indexHtml = indexHtml.replace('</head>', `${redirectScript}\n</head>`);
+    // Injecter juste après le canonical pour que ce soit exécuté le plus tôt possible
+    indexHtml = indexHtml.replace(
+        '<link rel="canonical" href="https://lechoixdeclara.fr/">',
+        `<link rel="canonical" href="https://lechoixdeclara.fr/">\n${redirectScript}`
+    );
     writeFileSync(indexPath, indexHtml, 'utf-8');
     console.log(`  ✓ Script de redirection injecté (${Object.keys(articleIdToSlug).length} articles mappés)`);
 
