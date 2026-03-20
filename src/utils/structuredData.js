@@ -53,7 +53,11 @@ export function generateArticleStructuredData(article) {
         "author": {
             "@type": "Person",
             "name": "Clara",
-            "description": "Experte en cadeaux et tests produits"
+            "description": "Experte en cadeaux et tests produits",
+            "sameAs": [
+                "https://www.instagram.com/lechoixdeclara/",
+                "https://fr.pinterest.com/lechoixdeclara/"
+            ]
         },
         "publisher": {
             "@type": "Organization",
@@ -88,7 +92,11 @@ export function generateHomeStructuredData() {
                 "name": "Clara",
                 "description": "Experte en cadeaux et tests produits",
                 "jobTitle": "Experte cadeaux",
-                "url": "https://lechoixdeclara.fr"
+                "url": "https://lechoixdeclara.fr",
+                "sameAs": [
+                    "https://www.instagram.com/lechoixdeclara/",
+                    "https://fr.pinterest.com/lechoixdeclara/"
+                ]
             }
         ]
     };

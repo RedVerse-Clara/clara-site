@@ -1265,6 +1265,17 @@ function App() {
                                 Clara, experte en cadeaux (et en vérité).
                             </p>
                         </div>
+                        <div className="flex items-center gap-6 mt-12 pt-8 border-t border-gray-100">
+                            <span className="text-sm text-gray-500 font-mono uppercase tracking-widest">Retrouvez-moi</span>
+                            <a href="https://www.instagram.com/lechoixdeclara/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-clara-green hover:text-clara-burgundy transition group">
+                                <Icon name="Instagram" size={18} />
+                                <span className="text-sm font-medium">Instagram</span>
+                            </a>
+                            <a href="https://fr.pinterest.com/lechoixdeclara/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-clara-green hover:text-clara-burgundy transition group">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12a4 4 0 1 1 4 4"/><path d="M12 16V8"/><circle cx="12" cy="12" r="10"/></svg>
+                                <span className="text-sm font-medium">Pinterest</span>
+                            </a>
+                        </div>
                     </section>
                 )}
 
@@ -1649,6 +1660,14 @@ function App() {
                     <div className="text-gray-600 text-sm">
                         <p className="font-bold text-white mb-4 uppercase tracking-widest text-[10px]">Contact</p>
                         <p className="italic text-gray-600 mb-8 text-xs">nova.iris.kael@gmail.com</p>
+                        <div className="flex items-center gap-4 mt-6">
+                            <a href="https://www.instagram.com/lechoixdeclara/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-gray-600 hover:text-white transition">
+                                <Icon name="Instagram" size={20} />
+                            </a>
+                            <a href="https://fr.pinterest.com/lechoixdeclara/" target="_blank" rel="noopener noreferrer" aria-label="Pinterest" className="text-gray-600 hover:text-white transition">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12a4 4 0 1 1 4 4"/><path d="M12 16V8"/><circle cx="12" cy="12" r="10"/></svg>
+                            </a>
+                        </div>
                         <p className="text-gray-600 text-[10px] mt-4 font-mono">Je guide les hommes attentionnés.</p>
                     </div>
                 </div>
