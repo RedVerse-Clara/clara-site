@@ -306,7 +306,12 @@ async function main() {
         articleIdToSlug[article.id] = slug;
     }
 
-    const redirectScript = `<script>(function(){var p=new URLSearchParams(window.location.search);var a=p.get("a");var pg=p.get("p");var r={about:"/about",privacy:"/privacy",affiliation:"/affiliation",legal:"/legal",admin:"/admin"};var m=${JSON.stringify(articleIdToSlug)};var dest;if(pg&&r[pg]){dest=r[pg];}else if(a&&m[a]){dest="/article/"+m[a];}if(dest){var c=document.querySelector('link[rel="canonical"]');if(c)c.href="https://lechoixdeclara.fr"+dest;window.location.replace(dest);}})();</script>`;
+    // Script de redirection amélioré :
+    // 1. Détecte TOUT query param legacy (?a=, ?p=, ?cat=)
+    // 2. Injecte immédiatement <meta name="robots" content="noindex"> pour empêcher l'indexation
+    // 3. Met à jour le canonical vers l'URL propre
+    // 4. Redirige vers la bonne page (ou homepage si ID inconnu)
+    const redirectScript = `<script>(function(){var s=window.location.search;if(!s)return;var p=new URLSearchParams(s);var a=p.get("a");var pg=p.get("p");var cat=p.get("cat");if(!a&&!pg&&!cat)return;var ni=document.createElement("meta");ni.name="robots";ni.content="noindex, nofollow";document.head.appendChild(ni);var r={about:"/about",privacy:"/privacy",affiliation:"/affiliation",legal:"/legal",admin:"/admin"};var cm={MODE:"/le-dressing",GEEK:"/le-coin-geek"};var m=${JSON.stringify(articleIdToSlug)};var dest="/";if(pg&&r[pg]){dest=r[pg];}else if(a&&m[a]){dest="/article/"+m[a];}else if(cat&&cm[cat]){dest=cm[cat];}var c=document.querySelector('link[rel="canonical"]');if(c)c.href="https://lechoixdeclara.fr"+dest;window.location.replace(dest);})();</script>`;
 
     const indexPath = join(DIST_DIR, 'index.html');
     let indexHtml = readFileSync(indexPath, 'utf-8');

@@ -1,8 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /*?a=
-Disallow: /*?p=
-Disallow: /*?cat=
 Sitemap: https://lechoixdeclara.fr/sitemap.xml
 
 # AI Crawler Directives
