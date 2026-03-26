@@ -40,6 +40,10 @@ function getInitialRoute() {
     if (pathname === '/admin') return { view: 'admin' };
     if (pathname === '/le-dressing') return { view: 'category-gallery', filter: 'MODE' };
     if (pathname === '/le-coin-geek') return { view: 'category-gallery', filter: 'GEEK' };
+    if (pathname === '/article') {
+        window.history.replaceState(null, '', '/');
+        return { view: 'home' };
+    }
     if (pathname.startsWith('/article/')) return { view: 'article', pendingSlug: decodeURIComponent(pathname.replace('/article/', '')) };
 
     return { view: 'home' };

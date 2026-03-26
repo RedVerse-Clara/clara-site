@@ -52,6 +52,11 @@ def generate_sitemap(articles):
     xml += f'  <url>\n    <loc>{BASE_URL}/le-dressing</loc>\n    <lastmod>{today}</lastmod>\n    <priority>0.7</priority>\n  </url>\n'
     xml += f'  <url>\n    <loc>{BASE_URL}/le-coin-geek</loc>\n    <lastmod>{today}</lastmod>\n    <priority>0.7</priority>\n  </url>\n'
 
+    # Pages légales/info
+    xml += f'  <url>\n    <loc>{BASE_URL}/privacy</loc>\n    <lastmod>{today}</lastmod>\n    <priority>0.3</priority>\n  </url>\n'
+    xml += f'  <url>\n    <loc>{BASE_URL}/legal</loc>\n    <lastmod>{today}</lastmod>\n    <priority>0.3</priority>\n  </url>\n'
+    xml += f'  <url>\n    <loc>{BASE_URL}/affiliation</loc>\n    <lastmod>{today}</lastmod>\n    <priority>0.3</priority>\n  </url>\n'
+
     # Articles dynamiques avec URLs propres
     for art in articles:
         slug = get_article_slug(art)

@@ -150,6 +150,10 @@ function generatePage(template, { title, description, canonical, ogTitle, ogDesc
         html = html.replace('</head>', `${jsonLd}\n</head>`);
     }
 
+    // Redirection trailing slash → sans trailing slash (évite les doublons dans Google)
+    const trailingSlashRedirect = `<script>if(window.location.pathname.length>1&&window.location.pathname.endsWith("/")){window.location.replace(window.location.pathname.slice(0,-1));}</script>`;
+    html = html.replace('</head>', `${trailingSlashRedirect}\n</head>`);
+
     return html;
 }
 
@@ -173,6 +177,9 @@ function generateSitemap(articles) {
         { loc: '/about', priority: '0.8' },
         { loc: '/le-dressing', priority: '0.7' },
         { loc: '/le-coin-geek', priority: '0.7' },
+        { loc: '/privacy', priority: '0.3' },
+        { loc: '/legal', priority: '0.3' },
+        { loc: '/affiliation', priority: '0.3' },
     ];
 
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
