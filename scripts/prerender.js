@@ -150,9 +150,9 @@ function generatePage(template, { title, description, canonical, ogTitle, ogDesc
         html = html.replace('</head>', `${jsonLd}\n</head>`);
     }
 
-    // Redirection trailing slash → sans trailing slash (évite les doublons dans Google)
-    const trailingSlashRedirect = `<script>if(window.location.pathname.length>1&&window.location.pathname.endsWith("/")){window.location.replace(window.location.pathname.slice(0,-1));}</script>`;
-    html = html.replace('</head>', `${trailingSlashRedirect}\n</head>`);
+    // NOTE: Pas de redirection trailing slash — GitHub Pages force un 301 vers /path/
+    // pour les dossiers avec index.html. Ajouter une redirection JS causerait une boucle infinie.
+    // Le SEO est géré par les balises <link rel="canonical"> (sans trailing slash).
 
     return html;
 }
