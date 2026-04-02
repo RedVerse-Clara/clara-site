@@ -157,15 +157,16 @@ function generatePage(template, { title, description, canonical, ogTitle, ogDesc
     return html;
 }
 
-// Écrit un fichier HTML dans le bon dossier de dist
+// Écrit un fichier HTML dans dist au format path.html (pas path/index.html)
+// GitHub Pages sert path.html directement pour /path, sans redirect 301 trailing slash.
 function writePage(relativePath, html) {
-    const filePath = join(DIST_DIR, relativePath, 'index.html');
+    const filePath = join(DIST_DIR, relativePath + '.html');
     const dir = dirname(filePath);
     if (!existsSync(dir)) {
         mkdirSync(dir, { recursive: true });
     }
     writeFileSync(filePath, html, 'utf-8');
-    console.log(`  ✓ ${relativePath}/index.html`);
+    console.log(`  ✓ ${relativePath}.html`);
 }
 
 // Génère le sitemap.xml avec les nouvelles URLs
