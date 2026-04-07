@@ -84,7 +84,7 @@ function App() {
     const [editingId, setEditingId] = useState(null);
     const [previewData, setPreviewData] = useState({
         title: '', category: 'ACTIVEWEAR', excerpt: '', content: '',
-        imageUrl: '', imageAlt: '', affiliateLink: '', affiliateType: 'AMAZON'
+        imageUrl: '', imageAlt: '', affiliateLinks: []
     });
 
     // États formulaire
@@ -294,8 +294,7 @@ function App() {
                 content: quillRef.current ? quillRef.current.getEditor().root.innerHTML : '',
                 imageUrl: fd.get('imageUrl'),
                 imageAlt: fd.get('imageAlt'),
-                affiliateLink: fd.get('affiliateLink'),
-                affiliateType: fd.get('affiliateType')
+                affiliateLinks: previewData.affiliateLinks || []
             });
             setIsPreview(true);
             window.scrollTo(0, 0);
@@ -307,7 +306,12 @@ function App() {
     // Édition d'un article
     const handleEditClick = (art) => {
         setEditingId(art.id);
-        setPreviewData({ ...art });
+        const migrated = { ...art };
+        if (!migrated.affiliateLinks && migrated.affiliateLink) {
+            migrated.affiliateLinks = [{ text: migrated.affiliateType === 'INSTANT_GAMING' ? 'Vérifier la promo sur Instant Gaming' : 'Vérifier le prix sur Amazon', url: migrated.affiliateLink }];
+        }
+        if (!migrated.affiliateLinks) migrated.affiliateLinks = [];
+        setPreviewData(migrated);
         navigateTo('admin');
         window.scrollTo(0, 0);
     };
@@ -317,7 +321,7 @@ function App() {
         setEditingId(null);
         setPreviewData({
             title: '', category: 'ACTIVEWEAR', excerpt: '', content: '',
-            imageUrl: '', imageAlt: '', affiliateLink: '', affiliateType: 'AMAZON'
+            imageUrl: '', imageAlt: '', affiliateLinks: []
         });
     };
 
@@ -332,8 +336,7 @@ function App() {
             content: quillRef.current.getEditor().root.innerHTML,
             imageUrl: new FormData(formRef.current).get('imageUrl'),
             imageAlt: new FormData(formRef.current).get('imageAlt'),
-            affiliateLink: new FormData(formRef.current).get('affiliateLink'),
-            affiliateType: new FormData(formRef.current).get('affiliateType')
+            affiliateLinks: previewData.affiliateLinks || []
         };
 
         // Ajouter le slug SEO-friendly
@@ -1496,38 +1499,54 @@ function App() {
                                         />
                                     </div>
                                     <div className="bg-emerald/5 p-6 rounded-2xl border border-emerald/10 space-y-4">
-                                        <div className="flex gap-4">
-                                            <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-emerald/40 transition">
-                                                <input
-                                                    type="radio"
-                                                    name="affiliateType"
-                                                    value="AMAZON"
-                                                    checked={previewData.affiliateType !== 'INSTANT_GAMING'}
-                                                    onChange={(e) => setPreviewData({ ...previewData, affiliateType: e.target.value })}
-                                                    className="accent-emerald"
-                                                />
-                                                <span className="text-xs font-bold uppercase">Amazon</span>
-                                            </label>
-                                            <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 bg-white border rounded-xl hover:border-orange-400 transition">
-                                                <input
-                                                    type="radio"
-                                                    name="affiliateType"
-                                                    value="INSTANT_GAMING"
-                                                    checked={previewData.affiliateType === 'INSTANT_GAMING'}
-                                                    onChange={(e) => setPreviewData({ ...previewData, affiliateType: e.target.value })}
-                                                    className="accent-[#FF6600]"
-                                                />
-                                                <span className="text-xs font-bold uppercase">Instant Gaming</span>
-                                            </label>
-                                        </div>
-                                        <input
-                                            name="affiliateLink"
-                                            value={previewData.affiliateLink || ''}
-                                            onChange={(e) => setPreviewData({ ...previewData, affiliateLink: e.target.value })}
-                                            placeholder="Lien d'affiliation"
-                                            className="w-full p-4 border rounded-xl outline-none"
-                                            required
-                                        />
+                                        <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Liens d'affiliation</p>
+                                        {(previewData.affiliateLinks || []).map((link, i) => (
+                                            <div key={i} className="flex gap-2 items-start">
+                                                <div className="flex-1 space-y-2">
+                                                    <input
+                                                        value={link.text}
+                                                        onChange={(e) => {
+                                                            const updated = [...previewData.affiliateLinks];
+                                                            updated[i] = { ...updated[i], text: e.target.value };
+                                                            setPreviewData({ ...previewData, affiliateLinks: updated });
+                                                        }}
+                                                        placeholder="Titre du bouton (ex: Vérifier le prix du top XYZ)"
+                                                        className="w-full p-3 border rounded-xl outline-none text-sm"
+                                                    />
+                                                    <input
+                                                        value={link.url}
+                                                        onChange={(e) => {
+                                                            const updated = [...previewData.affiliateLinks];
+                                                            updated[i] = { ...updated[i], url: e.target.value };
+                                                            setPreviewData({ ...previewData, affiliateLinks: updated });
+                                                        }}
+                                                        placeholder="Lien d'affiliation (https://...)"
+                                                        className="w-full p-3 border rounded-xl outline-none text-sm"
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updated = previewData.affiliateLinks.filter((_, j) => j !== i);
+                                                        setPreviewData({ ...previewData, affiliateLinks: updated });
+                                                    }}
+                                                    className="p-2 text-red-400 hover:text-red-600 transition mt-1"
+                                                    title="Supprimer ce lien"
+                                                >
+                                                    <Icon name="X" size={18} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewData({
+                                                ...previewData,
+                                                affiliateLinks: [...(previewData.affiliateLinks || []), { text: '', url: '' }]
+                                            })}
+                                            className="w-full p-3 border-2 border-dashed border-emerald/30 rounded-xl text-emerald/60 text-sm font-bold hover:border-emerald hover:text-emerald transition flex items-center justify-center gap-2"
+                                        >
+                                            <Icon name="Plus" size={16} /> Ajouter un lien d'affiliation
+                                        </button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 pt-4">
                                         <button
@@ -1565,8 +1584,8 @@ function App() {
                                                     <span className="text-[10px] bg-clara-green text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">
                                                         {art.category}
                                                     </span>
-                                                    <span className={`text-[10px] font-black uppercase tracking-tighter ${art.affiliateType === 'INSTANT_GAMING' ? 'text-orange-500' : 'text-blue-500'}`}>
-                                                        {art.affiliateType || 'AMAZON'}
+                                                    <span className="text-[10px] font-black uppercase tracking-tighter text-blue-500">
+                                                        {(art.affiliateLinks || []).length || (art.affiliateLink ? 1 : 0)} lien{((art.affiliateLinks || []).length || (art.affiliateLink ? 1 : 0)) > 1 ? 's' : ''}
                                                     </span>
                                                 </div>
                                             </div>

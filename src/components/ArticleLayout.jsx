@@ -48,23 +48,33 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
     // Données structurées Schema.org pour le SEO
     useStructuredData(generateArticleStructuredData(article));
 
-    const isInstantGaming = article.affiliateType === 'INSTANT_GAMING';
-
     // Articles similaires (même catégorie)
     const relatedArticles = allArticles
         .filter(a => a.category === article.category && a.id !== article.id)
         .slice(0, 3);
 
-    // Bouton d'affiliation réutilisable
-    const AffiliateButton = ({ className = "" }) => (
-        <a
-            href={article.affiliateLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${isInstantGaming ? 'bg-[#FF6600]' : 'bg-clara-burgundy'} text-white px-8 py-4 rounded-xl font-bold inline-block shadow-lg btn-hover hover:scale-105 transition text-sm tracking-wide text-center ${className}`}
-        >
-            {isInstantGaming ? 'Vérifier la promo sur Instant Gaming' : 'Vérifier le prix sur Amazon'}
-        </a>
+    // Support multi-liens d'affiliation + rétrocompatibilité ancien format
+    const affiliateLinks = article.affiliateLinks && article.affiliateLinks.length > 0
+        ? article.affiliateLinks
+        : article.affiliateLink
+            ? [{ text: article.affiliateButtonText || 'Vérifier le prix', url: article.affiliateLink }]
+            : [];
+
+    // Boutons d'affiliation réutilisables
+    const AffiliateButtons = ({ className = "" }) => (
+        <div className="flex flex-wrap gap-4 justify-center">
+            {affiliateLinks.map((link, i) => (
+                <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`bg-clara-burgundy text-white px-8 py-4 rounded-xl font-bold inline-block shadow-lg btn-hover hover:scale-105 transition text-sm tracking-wide text-center ${className}`}
+                >
+                    {link.text}
+                </a>
+            ))}
+        </div>
     );
 
     return (
@@ -115,10 +125,12 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                         {article.excerpt}
                     </p>
 
-                    {/* Bouton haut de page */}
-                    <div className="mb-10">
-                        <AffiliateButton />
-                    </div>
+                    {/* Boutons haut de page */}
+                    {affiliateLinks.length > 0 && (
+                        <div className="mb-10">
+                            <AffiliateButtons />
+                        </div>
+                    )}
                 </header>
 
                 <div
@@ -126,13 +138,15 @@ export default function ArticleLayout({ article, onBack, allArticles, onNavigate
                     dangerouslySetInnerHTML={{ __html: sanitizeHTML(article.content || "") }}
                 />
 
-                <footer className="bg-white p-12 rounded-3xl shadow-xl text-center border border-gray-50 my-20">
-                    <p className="mb-6 font-bold text-gray-600 uppercase tracking-widest text-[10px]">
-                        Sélection officielle Clara • Partenaire {isInstantGaming ? 'Instant Gaming' : 'Amazon'}
-                    </p>
-                    {/* Bouton bas de page */}
-                    <AffiliateButton className="px-12 py-6 text-lg" />
-                </footer>
+                {affiliateLinks.length > 0 && (
+                    <footer className="bg-white p-12 rounded-3xl shadow-xl text-center border border-gray-50 my-20">
+                        <p className="mb-6 font-bold text-gray-600 uppercase tracking-widest text-[10px]">
+                            Sélection officielle Clara
+                        </p>
+                        {/* Boutons bas de page */}
+                        <AffiliateButtons className="px-12 py-6 text-lg" />
+                    </footer>
+                )}
             </article>
 
             {/* Articles similaires */}
