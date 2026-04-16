@@ -9,6 +9,7 @@
   - Nouvelle section hero "À la une" en page d'accueil (uniquement quand filtre = ALL) : image large + titre + excerpt + CTA bordeaux. Si plusieurs articles épinglés, seul le plus récent est affiché ; les autres restent dans la grille "Derniers tests".
   - L'article épinglé est exclu de la grille "Derniers tests" pour éviter la duplication.
   - Aucune modification du prerender/sitemap : le hub reste un article standard `/article/{slug}`.
+  - Refonte du prompt en **mode interactif** : on colle le prompt tel quel dans Claude, qui pose les 5 questions une par une (occasion, angle, destinataire, articles, image) avant de générer. Plus besoin d'éditer le fichier à chaque utilisation.
 
 ## 2026-04-08
 
