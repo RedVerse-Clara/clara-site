@@ -84,7 +84,7 @@ function App() {
     const [editingId, setEditingId] = useState(null);
     const [previewData, setPreviewData] = useState({
         title: '', category: 'ACTIVEWEAR', excerpt: '', content: '',
-        imageUrl: '', imageAlt: '', affiliateLinks: []
+        imageUrl: '', imageAlt: '', affiliateLinks: [], pinned: false
     });
 
     // États formulaire
@@ -243,6 +243,10 @@ function App() {
         return true;
     });
 
+    // Article épinglé en home (uniquement filtre ALL) + liste sans épinglés pour la grille
+    const pinnedHero = categoryFilter === 'ALL' ? filteredArticles.find(a => a.pinned) : null;
+    const latestArticles = pinnedHero ? filteredArticles.filter(a => a.id !== pinnedHero.id) : filteredArticles;
+
     // Gestion admin - triple clic secret
     const handleAdminTrigger = (e) => {
         e.stopPropagation();
@@ -294,7 +298,8 @@ function App() {
                 content: quillRef.current ? quillRef.current.getEditor().root.innerHTML : '',
                 imageUrl: fd.get('imageUrl'),
                 imageAlt: fd.get('imageAlt'),
-                affiliateLinks: previewData.affiliateLinks || []
+                affiliateLinks: previewData.affiliateLinks || [],
+                pinned: !!previewData.pinned
             });
             setIsPreview(true);
             window.scrollTo(0, 0);
@@ -321,7 +326,7 @@ function App() {
         setEditingId(null);
         setPreviewData({
             title: '', category: 'ACTIVEWEAR', excerpt: '', content: '',
-            imageUrl: '', imageAlt: '', affiliateLinks: []
+            imageUrl: '', imageAlt: '', affiliateLinks: [], pinned: false
         });
     };
 
@@ -336,7 +341,8 @@ function App() {
             content: quillRef.current.getEditor().root.innerHTML,
             imageUrl: new FormData(formRef.current).get('imageUrl'),
             imageAlt: new FormData(formRef.current).get('imageAlt'),
-            affiliateLinks: previewData.affiliateLinks || []
+            affiliateLinks: previewData.affiliateLinks || [],
+            pinned: !!previewData.pinned
         };
 
         // Ajouter le slug SEO-friendly
@@ -709,6 +715,48 @@ function App() {
                             </div>
                         </section>
 
+                        {pinnedHero && (
+                            <section id="pinned" className="py-12 md:py-16 px-6 container mx-auto">
+                                <div
+                                    onClick={() => navigateTo('article', pinnedHero)}
+                                    role="button"
+                                    tabIndex="0"
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigateTo('article', pinnedHero); }}
+                                    className="grid md:grid-cols-3 gap-8 bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl border border-clara-burgundy/20 cursor-pointer group transition"
+                                    aria-label={`À la une : ${pinnedHero.title}`}
+                                >
+                                    <div className="md:col-span-2 h-64 md:h-auto min-h-[300px] bg-gray-100 relative overflow-hidden">
+                                        <span className="absolute top-4 left-4 bg-clara-burgundy text-white text-[11px] px-4 py-1.5 rounded font-bold z-10 uppercase tracking-widest shadow-md">
+                                            À la une
+                                        </span>
+                                        {pinnedHero.imageUrl && (
+                                            <img
+                                                src={pinnedHero.imageUrl}
+                                                alt={pinnedHero.imageAlt || pinnedHero.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                loading="eager"
+                                            />
+                                        )}
+                                    </div>
+                                    <div className="p-8 md:p-10 flex flex-col justify-center">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-clara-burgundy mb-3">
+                                            {pinnedHero.category}
+                                        </span>
+                                        <h2 className="text-3xl md:text-4xl font-serif text-clara-green leading-tight mb-4 group-hover:text-clara-burgundy transition">
+                                            {pinnedHero.title}
+                                        </h2>
+                                        <p className="text-gray-600 line-clamp-3 mb-6">
+                                            {pinnedHero.excerpt}
+                                        </p>
+                                        <div className="inline-flex items-center gap-2 text-clara-burgundy font-bold text-xs uppercase tracking-widest">
+                                            <span>Lire le dossier complet</span>
+                                            <Icon name="ChevronRight" size={16} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
                         <section id="latest" className="py-12 md:py-16 px-6 container mx-auto">
                             <div className="flex flex-col md:flex-row justify-between items-baseline mb-12 gap-4">
                                 <h2 className="text-4xl font-serif text-clara-green">
@@ -740,7 +788,7 @@ function App() {
                                     ))
                                 ) : (
                                     // Real articles once loaded
-                                    filteredArticles.slice(0, homeDisplayCount).map(article => (
+                                    latestArticles.slice(0, homeDisplayCount).map(article => (
                                         <div
                                             key={article.id}
                                             onClick={() => navigateTo('article', article)}
@@ -777,7 +825,7 @@ function App() {
                             </div>
 
                             {/* Bouton "Voir plus" */}
-                            {homeDisplayCount < filteredArticles.length && (
+                            {homeDisplayCount < latestArticles.length && (
                                 <div className="text-center mt-12">
                                     <button
                                         onClick={() => setHomeDisplayCount(prev => prev + 3)}
@@ -789,7 +837,7 @@ function App() {
                                 </div>
                             )}
 
-                            {filteredArticles.length === 0 && articles.length > 0 && (
+                            {latestArticles.length === 0 && articles.length > 0 && !pinnedHero && (
                                 <p className="text-center py-20 italic text-gray-600">
                                     Aucun test dans cette catégorie pour le moment.
                                 </p>
@@ -1457,6 +1505,9 @@ function App() {
                                                 <option>TECH</option>
                                                 <option>COSPLAY</option>
                                             </optgroup>
+                                            <optgroup label="Dossiers / Hubs thématiques">
+                                                <option>DOSSIER</option>
+                                            </optgroup>
                                         </select>
                                     </div>
                                     <input
@@ -1498,6 +1549,20 @@ function App() {
                                             className="p-4 border rounded-xl outline-none bg-gray-50"
                                         />
                                     </div>
+                                    <label className="flex items-start gap-3 p-4 rounded-xl border border-clara-green/20 bg-clara-cream/40 cursor-pointer hover:border-clara-green/60 transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!previewData.pinned}
+                                            onChange={(e) => setPreviewData({ ...previewData, pinned: e.target.checked })}
+                                            className="w-5 h-5 mt-0.5 accent-clara-burgundy"
+                                        />
+                                        <span className="text-sm font-bold text-clara-green">
+                                            Épingler en page d'accueil
+                                            <span className="block text-[11px] font-normal text-gray-600 mt-1">
+                                                L'article apparaît en hero "À la une" avant les derniers tests. Si plusieurs articles sont épinglés, seul le plus récent s'affiche.
+                                            </span>
+                                        </span>
+                                    </label>
                                     <div className="bg-emerald/5 p-6 rounded-2xl border border-emerald/10 space-y-4">
                                         <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Liens d'affiliation</p>
                                         {(previewData.affiliateLinks || []).map((link, i) => (
@@ -1580,10 +1645,15 @@ function App() {
                                         >
                                             <div className="mb-6">
                                                 <p className="font-bold text-base text-clara-green">{art.title}</p>
-                                                <div className="flex gap-3 mt-2">
+                                                <div className="flex gap-3 mt-2 flex-wrap">
                                                     <span className="text-[10px] bg-clara-green text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">
                                                         {art.category}
                                                     </span>
+                                                    {art.pinned && (
+                                                        <span className="text-[10px] bg-clara-burgundy text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                                                            À la une
+                                                        </span>
+                                                    )}
                                                     <span className="text-[10px] font-black uppercase tracking-tighter text-blue-500">
                                                         {(art.affiliateLinks || []).length || (art.affiliateLink ? 1 : 0)} lien{((art.affiliateLinks || []).length || (art.affiliateLink ? 1 : 0)) > 1 ? 's' : ''}
                                                     </span>
