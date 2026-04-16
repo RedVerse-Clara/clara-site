@@ -73,6 +73,8 @@ function App() {
     const [deletingId, setDeletingId] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showInstaModal, setShowInstaModal] = useState(false);
+    const [showHtmlImport, setShowHtmlImport] = useState(false);
+    const [htmlImportContent, setHtmlImportContent] = useState('');
 
     // États pagination
     const [homeDisplayCount, setHomeDisplayCount] = useState(3);
@@ -599,6 +601,49 @@ function App() {
                                     Insérer
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Import HTML (pour coller la sortie du générateur de hub) */}
+            {showHtmlImport && (
+                <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-6 backdrop-blur-md">
+                    <div className="bg-white p-8 rounded-3xl max-w-3xl w-full shadow-2xl border border-clara-green/10 fade-in scale-in">
+                        <h3 className="text-xl font-serif text-clara-green font-bold mb-2 flex items-center gap-3">
+                            <Icon name="Code" className="text-clara-burgundy" /> Importer du HTML
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-5">
+                            Colle ici le contenu du bloc <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">===CONTENT_HTML===</code> du générateur de hub. Le HTML sera injecté dans l'éditeur (remplace le contenu actuel).
+                        </p>
+                        <textarea
+                            value={htmlImportContent}
+                            onChange={e => setHtmlImportContent(e.target.value)}
+                            placeholder="<p>Messieurs…</p>&#10;<h3>…</h3>&#10;…"
+                            className="w-full p-4 border rounded-xl outline-none focus:ring-2 ring-emerald/20 bg-gray-50 font-mono text-sm resize-none"
+                            rows={14}
+                            autoFocus
+                        />
+                        <div className="flex gap-4 pt-5">
+                            <button
+                                onClick={() => { setShowHtmlImport(false); setHtmlImportContent(''); }}
+                                className="flex-1 py-4 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const editor = quillRef.current && quillRef.current.getEditor();
+                                    if (editor && htmlImportContent.trim()) {
+                                        editor.clipboard.dangerouslyPasteHTML(htmlImportContent);
+                                    }
+                                    setShowHtmlImport(false);
+                                    setHtmlImportContent('');
+                                }}
+                                className="flex-1 py-4 bg-clara-burgundy text-white rounded-xl font-bold shadow-lg hover:scale-[1.02] transition"
+                            >
+                                Injecter dans l'éditeur
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1519,9 +1564,19 @@ function App() {
                                         required
                                     />
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-gray-600 tracking-widest block mb-1">
-                                            Récit du test
-                                        </label>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-[10px] font-bold uppercase text-gray-600 tracking-widest">
+                                                Récit du test
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setHtmlImportContent(''); setShowHtmlImport(true); }}
+                                                className="text-[10px] font-bold uppercase tracking-widest text-clara-burgundy hover:text-clara-green transition flex items-center gap-1"
+                                                title="Coller du HTML pré-formaté (ex: sortie du générateur de hub)"
+                                            >
+                                                <Icon name="Code" size={14} /> Importer HTML
+                                            </button>
+                                        </div>
                                         <ReactQuill
                                             key={editingId || 'new'}
                                             ref={quillRef}

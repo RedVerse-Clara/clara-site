@@ -10,6 +10,7 @@
   - L'article épinglé est exclu de la grille "Derniers tests" pour éviter la duplication.
   - Aucune modification du prerender/sitemap : le hub reste un article standard `/article/{slug}`.
   - Refonte du prompt en **mode interactif** : on colle le prompt tel quel dans Claude, qui pose les 5 questions une par une (occasion, angle, destinataire, articles, image) avant de générer. Plus besoin d'éditer le fichier à chaque utilisation.
+  - Bouton **"Importer HTML"** dans l'admin à côté de l'éditeur Quill : ouvre une modale avec textarea, injecte le HTML collé via `dangerouslyPasteHTML` (remplace le contenu actuel). Permet de coller directement le bloc `===CONTENT_HTML===` du générateur sans passer par la console.
 
 ## 2026-04-08
 
